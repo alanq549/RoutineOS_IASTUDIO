@@ -1,0 +1,35 @@
+package com.alan.routineos.data.local.dao
+
+import androidx.room.*
+import com.alan.routineos.data.local.entities.DailyInstanceEntity
+import kotlinx.coroutines.flow.Flow
+
+@Dao
+interface DailyInstanceDao {
+    @Query("SELECT * FROM daily_instances WHERE scheduledDate = :date")
+    fun getInstancesForDate(date: Long): Flow<List<DailyInstanceEntity>>
+
+    @Query("SELECT * FROM daily_instances WHERE targetId = :targetId AND scheduledDate = :date LIMIT 1")
+    suspend fun getInstanceByTarget(targetId: String, date: Long): DailyInstanceEntity?
+
+    @Query("SELECT * FROM daily_instances WHERE sourceRuleId = :sourceRuleId AND scheduledDate = :date LIMIT 1")
+    suspend fun getInstanceBySourceRule(sourceRuleId: String, date: Long): DailyInstanceEntity?
+
+    @Query("SELECT * FROM daily_instances WHERE scheduledDate BETWEEN :start AND :end")
+    fun getInstancesInRange(start: Long, end: Long): Flow<List<DailyInstanceEntity>>
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insertInstance(instance: DailyInstanceEntity)
+
+    @Insert(onConflict = OnConflictStrategy.ABORT)
+    suspend fun insertInstanceStrict(instance: DailyInstanceEntity)
+
+    @Delete
+    suspend fun deleteInstance(instance: DailyInstanceEntity)
+
+    @Query("DELETE FROM daily_instances WHERE id = :id")
+    suspend fun deleteInstanceById(id: String)
+
+    @Query("SELECT * FROM daily_instances WHERE actionProtocol = :protocol")
+    fun getInstancesByProtocol(protocol: String): Flow<List<DailyInstanceEntity>>
+}

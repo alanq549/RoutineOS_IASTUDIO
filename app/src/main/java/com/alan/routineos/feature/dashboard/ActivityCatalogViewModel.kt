@@ -1,0 +1,237 @@
+package com.alan.routineos.feature.dashboard
+
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
+import com.alan.routineos.domain.model.ActivityDefinition
+import com.alan.routineos.domain.model.ActivityNode
+import com.alan.routineos.domain.model.LifeSystem
+import com.alan.routineos.domain.model.ScheduleRule
+import com.alan.routineos.domain.model.ScheduleTarget
+import com.alan.routineos.domain.repository.ActivityRepository
+import com.alan.routineos.feature.dashboard.model.*
+import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.launch
+import java.util.UUID
+import javax.inject.Inject
+
+
+@HiltViewModel
+class ActivityCatalogViewModel @Inject constructor(
+    private val repository: ActivityRepository
+) : ViewModel() {
+
+    private val _uiState = MutableStateFlow(ActivityCatalogUiState(isLoading = true))
+    val uiState: StateFlow<ActivityCatalogUiState> = _uiState.asStateFlow()
+
+    private val _selectedSystemId = MutableStateFlow<String?>(null)
+    private val _editingSystem = MutableStateFlow<LifeSystem?>(null)
+    private val _isCreatingNewSystem = MutableStateFlow(false)
+
+    init {
+        loadData()
+    }
+
+    @OptIn(ExperimentalCoroutinesApi::class)
+    private fun loadData() {
+        viewModelScope.launch {
+            val systemsFlow = repository.getAllSystems()
+            val definitionsFlow = repository.getActivityDefinitions()
+
+            combine(
+                systemsFlow,
+                definitionsFlow,
+                _selectedSystemId,
+                _editingSystem,
+                _isCreatingNewSystem
+            ) { systems, definitions, selectedId, editing, creating ->
+                val densities = systems.associate { system ->
+                    system.id to definitions.count { it.systemId == system.id }
+                }
+                val totalCount = definitions.size
+
+                val filteredDefs = if (selectedId == null) {
+                    definitions
+                } else {
+                    definitions.filter { it.systemId == selectedId }
+                }
+
+                val cards = if (filteredDefs.isEmpty()) emptyList() else {
+                    filteredDefs.map { def ->
+                        combine(
+                            repository.getNodesForActivityDefinition(def.id),
+                            repository.getRulesForActivityTree(def.id)
+                        ) { nodes, rules ->
+                            mapToCardModel(def, nodes, rules, systems)
+                        }
+                    }.let { combine(it) { it.toList() }.first() }
+                }
+
+                ActivityCatalogUiState(
+                    isLoading = false,
+                    myActivities = cards,
+                    allSystems = systems,
+                    systemCounts = densities,
+                    totalActivitiesCount = totalCount,
+                    selectedSystemId = selectedId,
+                    editingSystem = editing,
+                    isCreatingNewSystem = creating
+                )
+            }.collect { newState ->
+                _uiState.value = newState
+            }
+        }
+    }
+
+    fun onSystemSelected(systemId: String?) {
+        _selectedSystemId.value = systemId
+    }
+
+    fun onAddSystemClick() {
+        _isCreatingNewSystem.value = true
+        _editingSystem.value = LifeSystem(
+            id = UUID.randomUUID().toString(),
+            title = "",
+            description = "",
+            iconKey = "account_tree",
+            colorHex = "#34D399"
+        )
+    }
+
+    fun onEditSystemClick(id: String) {
+        viewModelScope.launch {
+            val system = repository.getSystemById(id)
+            if (system != null) {
+                _isCreatingNewSystem.value = false
+                _editingSystem.value = system
+            }
+        }
+    }
+
+    fun onUpdateSystemFields(title: String, icon: String, color: String) {
+        _editingSystem.update { current ->
+            current?.copy(title = title, iconKey = icon, colorHex = color)
+        }
+    }
+
+    fun onSaveSystem() {
+        val system = _editingSystem.value ?: return
+        if (system.title.isBlank()) return
+
+        viewModelScope.launch {
+            repository.upsertSystem(system)
+            onDismissSystemEditor()
+        }
+    }
+
+    fun onDeleteSystem(id: String) {
+        viewModelScope.launch {
+            val system = repository.getSystemById(id)
+            if (system != null) {
+                repository.deleteSystem(system)
+                if (_selectedSystemId.value == id) _selectedSystemId.value = null
+                onDismissSystemEditor()
+            }
+        }
+    }
+
+    fun onDeleteActivity(activityId: String) {
+        viewModelScope.launch {
+            val def = repository.getActivityDefinitionById(activityId)
+            if (def != null) {
+                repository.deleteActivityDefinition(def)
+            }
+        }
+    }
+
+    fun onDismissSystemEditor() {
+        _editingSystem.value = null
+        _isCreatingNewSystem.value = false
+    }
+
+    private fun mapToCardModel(
+        def: ActivityDefinition,
+        nodes: List<ActivityNode>,
+        rules: List<ScheduleRule>,
+        systems: List<LifeSystem>
+    ): ActivityCardModel {
+        val linkedSystem = systems.find { it.id == def.systemId }
+        val iconKey = linkedSystem?.iconKey ?: "account_tree"
+        val iconColor = linkedSystem?.colorHex ?: "#94A3B8"
+
+        val uniqueDays = rules.flatMap { it.daysOfWeek }.distinct().size
+        val containers = nodes.filter { it.parentId == null }.size
+        val leaves = nodes.filter { node -> nodes.none { it.parentId == node.id } }.size
+        
+        val statsLine = buildString {
+            if (uniqueDays > 0) append("$uniqueDays sesiones")
+            if (containers > 0) {
+                if (isNotEmpty()) append(" · ")
+                append("$containers categorías")
+            }
+            if (leaves > 0) {
+                if (isNotEmpty()) append(" · ")
+                append("$leaves actividades")
+            }
+        }
+
+        val dayNames = listOf("", "Lun", "Mar", "Mié", "Jue", "Vie", "Sáb", "Dom")
+        val summaryItems = (1..7).mapNotNull { day ->
+            val dayRules = rules.filter { it.daysOfWeek.contains(day) }
+            if (dayRules.isEmpty()) return@mapNotNull null
+            
+            val previewItems = mutableListOf<String>()
+            
+            dayRules.forEach { rule ->
+                val targetId = when(val target = rule.target) {
+                    is ScheduleTarget.Definition -> null
+                    is ScheduleTarget.Node -> target.id
+                }
+                
+                if (targetId == null) {
+                    previewItems.addAll(nodes.filter { it.parentId == null }.map { it.title })
+                } else {
+                    val targetNode = nodes.find { it.id == targetId }
+                    val children = nodes.filter { it.parentId == targetId }
+                    
+                    if (children.isNotEmpty()) {
+                        previewItems.addAll(children.map { it.title })
+                    } else {
+                        targetNode?.let { previewItems.add(it.title) }
+                    }
+                }
+            }
+
+            if (previewItems.isEmpty()) return@mapNotNull null
+
+            ActivitySummaryDay(
+                dayName = dayNames[day],
+                activities = previewItems.distinct(),
+                detailText = null
+            )
+        }
+
+        val previewLimit = 2
+        val visibleSummary = summaryItems.take(previewLimit)
+        val moreDays = if (summaryItems.size > previewLimit) summaryItems.size - previewLimit else 0
+
+        return ActivityCardModel(
+            id = def.id,
+            title = def.title,
+            iconName = iconKey,
+            iconColorHex = iconColor,
+            frequency = if (uniqueDays == 7) "Lun - Dom" else if (uniqueDays >= 5) "Lun - Vie" else "Frecuencia",
+            durationText = if (uniqueDays > 0) "$uniqueDays sesiones/sem" else "Sin configurar",
+            subtitle = def.description,
+            statsLine = statsLine,
+            summaryItems = visibleSummary,
+            moreDaysCount = moreDays,
+            systemTitle = linkedSystem?.title?.uppercase()
+        )
+    }
+
+    fun onSearchQueryChanged(query: String) {
+        _uiState.update { it.copy(searchQueries = query) }
+    }
+}

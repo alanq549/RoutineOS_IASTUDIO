@@ -1,0 +1,182 @@
+package com.alan.routineos.domain.usecase
+
+import com.alan.routineos.data.local.RoutineOSDatabase
+import com.alan.routineos.data.local.dao.*
+import com.alan.routineos.data.local.entities.ActivityNodeEntity
+import com.alan.routineos.data.local.entities.DailyInstanceEntity
+import com.alan.routineos.data.local.entities.ScheduleExceptionEntity
+import com.alan.routineos.data.local.entities.ScheduleRuleEntity
+import com.alan.routineos.data.repository.OfflineActivityRepository
+import com.alan.routineos.domain.model.*
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.test.runTest
+import org.junit.Assert.assertEquals
+import org.junit.Test
+
+class ReorderNodesTest {
+
+    @Test
+    fun `reorderNodes only affects siblings within same definition`() = runTest {
+        val defId = "act1"
+        val parentId = "parent1"
+        
+        val node1 = ActivityNodeEntity("1", defId, parentId, 0, "N1")
+        val node2 = ActivityNodeEntity("2", defId, parentId, 1, "N2")
+        val nodeOther = ActivityNodeEntity("3", "act_other", parentId, 0, "Other")
+        
+        val updatedNodes = mutableListOf<ActivityNodeEntity>()
+        
+        val nodeDao = object : FakeActivityNodeDao() {
+            override suspend fun getNodeById(id: String): ActivityNodeEntity? {
+                return when(id) {
+                    "1" -> node1
+                    "2" -> node2
+                    "3" -> nodeOther
+                    else -> null
+                }
+            }
+            override suspend fun updateNodes(nodes: List<ActivityNodeEntity>) {
+                updatedNodes.addAll(nodes)
+            }
+        }
+        
+        val fakeDb = object : RoutineOSDatabase() {
+            override fun activityDefinitionDao(): ActivityDefinitionDao = FakeActivityDefinitionDao()
+            override fun activityNodeDao(): ActivityNodeDao = nodeDao
+            override fun activityExecutionDao(): ActivityExecutionDao = FakeActivityExecutionDao()
+            override fun scheduleRuleDao(): ScheduleRuleDao = FakeScheduleRuleDao()
+            override fun scheduleExceptionDao(): ScheduleExceptionDao = FakeScheduleExceptionDao()
+            override fun dailyInstanceDao(): DailyInstanceDao = FakeDailyInstanceDao()
+            override fun metadataSchemaDao(): MetadataSchemaDao = FakeMetadataSchemaDao()
+            override fun systemDao(): SystemDao = FakeSystemDao()
+            override fun backlogItemDao(): BacklogItemDao = FakeBacklogItemDao()
+            override fun deadlineDao(): DeadlineDao = FakeDeadlineDao()
+            override fun noteDao(): NoteDao = FakeNoteDao()
+            override fun createOpenHelper(config: androidx.room.DatabaseConfiguration): androidx.sqlite.db.SupportSQLiteOpenHelper = TODO()
+            override fun createInvalidationTracker(): androidx.room.InvalidationTracker = TODO()
+            override fun clearAllTables() {}
+        }
+
+        val repository = OfflineActivityRepository(
+            database = fakeDb,
+            activityDefinitionDao = FakeActivityDefinitionDao(),
+            activityNodeDao = nodeDao,
+            activityExecutionDao = FakeActivityExecutionDao(),
+            scheduleRuleDao = FakeScheduleRuleDao(),
+            scheduleExceptionDao = FakeScheduleExceptionDao(),
+            dailyInstanceDao = FakeDailyInstanceDao(),
+            metadataSchemaDao = FakeMetadataSchemaDao(),
+            systemDao = FakeSystemDao(),
+            noteDao = FakeNoteDao(),
+            backlogItemDao = FakeBacklogItemDao(),
+            deadlineDao = FakeDeadlineDao(),
+            validateActivityNodeUseCase = ValidateActivityNodeUseCase(),
+            validateScheduleRuleUseCase = ValidateScheduleRuleUseCase(),
+            validateMetadataSchemaUseCase = ValidateMetadataSchemaUseCase()
+        )
+
+        // Try to reorder 1, 2, and 3. 3 should be ignored because it belongs to another definition.
+        repository.reorderNodes(listOf("2", "1", "3"))
+
+        assertEquals(2, updatedNodes.size)
+        assertEquals("2", updatedNodes[0].id)
+        assertEquals(0, updatedNodes[0].position)
+        assertEquals("1", updatedNodes[1].id)
+        assertEquals(1, updatedNodes[1].position)
+    }
+
+    private open class FakeActivityNodeDao : ActivityNodeDao {
+        override fun getAllNodes(): Flow<List<ActivityNodeEntity>> = TODO()
+        override fun getNodesForActivityDefinition(activityDefinitionId: String): Flow<List<ActivityNodeEntity>> = TODO()
+        override suspend fun insertNode(node: ActivityNodeEntity) {}
+        override suspend fun deleteNode(node: ActivityNodeEntity) {}
+        override suspend fun updateNodes(nodes: List<ActivityNodeEntity>) {}
+        override suspend fun getNodeById(id: String): ActivityNodeEntity? = null
+        override suspend fun getNodesListForActivityDefinition(activityDefinitionId: String): List<ActivityNodeEntity> = emptyList()
+    }
+    
+    private class FakeActivityDefinitionDao : ActivityDefinitionDao {
+        override fun getAllActivityDefinitions(): Flow<List<com.alan.routineos.data.local.entities.ActivityDefinitionEntity>> = TODO()
+        override suspend fun getActivityDefinitionById(id: String): com.alan.routineos.data.local.entities.ActivityDefinitionEntity? = null
+        override suspend fun insertActivityDefinition(activityDefinition: com.alan.routineos.data.local.entities.ActivityDefinitionEntity) {}
+        override suspend fun deleteActivityDefinition(activityDefinition: com.alan.routineos.data.local.entities.ActivityDefinitionEntity) {}
+        override suspend fun getDefinitionsList(): List<com.alan.routineos.data.local.entities.ActivityDefinitionEntity> = emptyList()
+    }
+    
+    private class FakeActivityExecutionDao : ActivityExecutionDao {
+        override fun getAllExecutions(): Flow<List<com.alan.routineos.data.local.entities.ActivityExecutionEntity>> = flowOf(emptyList())
+        override suspend fun insertExecution(execution: com.alan.routineos.data.local.entities.ActivityExecutionEntity) = TODO()
+        override fun getExecutionsForNode(nodeId: String): Flow<List<com.alan.routineos.data.local.entities.ActivityExecutionEntity>> = TODO()
+        override fun getExecutionsForNodeOnDate(nodeId: String, scheduledDate: Long): Flow<List<com.alan.routineos.data.local.entities.ActivityExecutionEntity>> = TODO()
+        override suspend fun deleteExecutionsForNodeOnDate(nodeId: String, scheduledDate: Long) = TODO()
+        override suspend fun deleteExecutionsForDailyInstance(dailyInstanceId: String) {}
+        override suspend fun deleteExecutionsForNode(nodeId: String) = TODO()
+    }
+    
+    private class FakeScheduleRuleDao : ScheduleRuleDao {
+        override fun getAllRules(): Flow<List<ScheduleRuleEntity>> = TODO()
+        override fun getRulesForNode(nodeId: String): Flow<List<ScheduleRuleEntity>> = TODO()
+        override fun getRulesForDefinition(definitionId: String): Flow<List<ScheduleRuleEntity>> = TODO()
+        override fun getRulesForActivityTree(definitionId: String): Flow<List<ScheduleRuleEntity>> = TODO()
+        override suspend fun insertRule(rule: ScheduleRuleEntity) {}
+        override suspend fun deleteRule(rule: ScheduleRuleEntity) {}
+        override suspend fun getRulesListForNode(nodeId: String): List<ScheduleRuleEntity> = emptyList()
+        override suspend fun getRulesListForDefinition(definitionId: String): List<ScheduleRuleEntity> = emptyList()
+    }
+    
+    private class FakeScheduleExceptionDao : ScheduleExceptionDao {
+        override fun getAllExceptions(): Flow<List<ScheduleExceptionEntity>> = TODO()
+        override fun getExceptionsForRule(ruleId: String): Flow<List<ScheduleExceptionEntity>> = TODO()
+        override suspend fun insertException(exception: ScheduleExceptionEntity) {}
+        override suspend fun deleteException(exception: ScheduleExceptionEntity) {}
+    }
+
+        private class FakeDailyInstanceDao : DailyInstanceDao {
+        override fun getInstancesForDate(date: Long): Flow<List<DailyInstanceEntity>> = TODO()
+        override fun getInstancesInRange(start: Long, end: Long): Flow<List<DailyInstanceEntity>> = flowOf(emptyList())
+        override suspend fun getInstanceByTarget(targetId: String, date: Long): DailyInstanceEntity? = null
+        override suspend fun getInstanceBySourceRule(sourceRuleId: String, date: Long): DailyInstanceEntity? = null
+        override suspend fun insertInstance(instance: DailyInstanceEntity) {}
+        override suspend fun insertInstanceStrict(instance: DailyInstanceEntity) {}
+        override suspend fun deleteInstance(instance: DailyInstanceEntity) {}
+        override suspend fun deleteInstanceById(id: String) {}
+        override fun getInstancesByProtocol(protocol: String): Flow<List<DailyInstanceEntity>> = flowOf(emptyList())
+    }
+
+    private class FakeNoteDao : com.alan.routineos.data.local.dao.NoteDao {
+        override fun getAllNotes(): Flow<List<com.alan.routineos.data.local.entities.NoteEntity>> = flowOf(emptyList())
+        override fun getNotesByQuery(instanceId: String?, date: Long, title: String): Flow<List<com.alan.routineos.data.local.entities.NoteEntity>> = flowOf(emptyList())
+        override suspend fun upsertNote(note: com.alan.routineos.data.local.entities.NoteEntity) {}
+        override suspend fun deleteNote(note: com.alan.routineos.data.local.entities.NoteEntity) {}
+        override suspend fun deleteNoteByInstanceId(instanceId: String) {}
+        override fun getNotesForDate(date: Long): Flow<List<com.alan.routineos.data.local.entities.NoteEntity>> = flowOf(emptyList())
+        override suspend fun getNoteByInstanceId(instanceId: String): com.alan.routineos.data.local.entities.NoteEntity? = null
+    }
+
+    private class FakeBacklogItemDao : com.alan.routineos.data.local.dao.BacklogItemDao {
+        override fun getAllBacklogItems(): Flow<List<com.alan.routineos.data.local.entities.BacklogItemEntity>> = flowOf(emptyList())
+        override suspend fun upsertBacklogItem(item: com.alan.routineos.data.local.entities.BacklogItemEntity) {}
+        override suspend fun deleteBacklogItem(item: com.alan.routineos.data.local.entities.BacklogItemEntity) {}
+    }
+
+    private class FakeDeadlineDao : com.alan.routineos.data.local.dao.DeadlineDao {
+        override fun getAllDeadlines(): Flow<List<com.alan.routineos.data.local.entities.DeadlineEntity>> = flowOf(emptyList())
+        override suspend fun upsertDeadline(deadline: com.alan.routineos.data.local.entities.DeadlineEntity) {}
+        override suspend fun deleteDeadline(deadline: com.alan.routineos.data.local.entities.DeadlineEntity) {}
+    }
+
+    private class FakeMetadataSchemaDao : MetadataSchemaDao {
+        override fun getSchema(targetId: String, targetType: String): Flow<com.alan.routineos.data.local.entities.MetadataSchemaEntity?> = flowOf(null)
+        override suspend fun insertSchema(schema: com.alan.routineos.data.local.entities.MetadataSchemaEntity) {}
+        override suspend fun deleteSchema(schema: com.alan.routineos.data.local.entities.MetadataSchemaEntity) {}
+    }
+
+    private class FakeSystemDao : SystemDao {
+        override fun getAllSystems(): Flow<List<com.alan.routineos.data.local.entities.SystemEntity>> = flowOf(emptyList())
+        override suspend fun getSystemsList(): List<com.alan.routineos.data.local.entities.SystemEntity> = emptyList()
+        override suspend fun getSystemById(id: String): com.alan.routineos.data.local.entities.SystemEntity? = null
+        override suspend fun upsertSystem(system: com.alan.routineos.data.local.entities.SystemEntity) {}
+        override suspend fun deleteSystem(system: com.alan.routineos.data.local.entities.SystemEntity) {}
+    }
+}

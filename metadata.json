@@ -1,0 +1,8 @@
+{
+  "name": "RoutineOS",
+  "description": "Routine and life system organization and tracking application",
+  "requestFramePermissions": [],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}

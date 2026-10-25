@@ -1,0 +1,59 @@
+# 04_PROJECT_STATUS.md — RoutineOS v2
+
+## Tablero de Engineering Cards (EC)
+Este es el panel de control de todas las tareas del proyecto. El contexto vivo de ejecución se encuentra en **[07_CURRENT_CONTEXT.md](./07_CURRENT_CONTEXT.md)**.
+
+| ID | Title | Priority | Effort | Owner | Dependencies | Status | Notes |
+| :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- |
+| EC-000 | Project Setup & Philosophy | High | Small | AI Agent | None | CLOSED | Confirmado manualmente por el usuario. Ver AUDITS/AUDIT_EC-000.md |
+| EC-001 | Data Foundation Implementation | High | Medium | AI Agent | None | CLOSED | Violación de invariante de dominio detectada en auditoría retroactiva. Ver AUDITS/AUDIT_EC-001.md. Corrección consolidada en EC-005. |
+| EC-002 | Core Architecture & Base Repositories | High | Medium | AI Agent | EC-001 | CLOSED | Violación de invariante de dominio detectada en auditoría retroactiva. Ver AUDITS/AUDIT_EC-002.md. Corrección consolidada en EC-005. |
+| EC-003 | Design System Foundations & Refinement | High | Medium | AI Agent | EC-000 | CLOSED | Fonts, Atomic Components & Catalog |
+| EC-005 | Domain Model Agnostic Refactor | High | Medium | AI Agent | EC-002 | CLOSED | Domain & Database Agnostic Refactor |
+| EC-006 | Routine Dashboard Screen | High | Medium | AI Agent | EC-005 | APPROVED | Reactive Dashboard Screen. Arquitectura agnóstica verificada. Fallos en Invariantes de Dominio y DI corregidos. |
+| EC-007 | Activity Creation Flow | High | Medium | AI Agent | EC-006 | APPROVED | Creation flow for ActivityDefinitions. |
+| EC-008 | Activity Detail & Nodes Management | High | Medium | AI Agent | EC-007 | APPROVED | Detail screen and node management. Calidad de código verificada. |
+| EC-009 | Activity Execution Engine | High | Medium | AI Agent | EC-008 | APPROVED | Generic JSON-based execution tracking. Calidad de código verificada. |
+| EC-010 | Interaction Cleanup | High | Small | AI Agent | EC-009 | CLOSED | Surgical cleanup of dead tap targets and snackbar feedback. |
+| EC-011 | Scheduling Model | Critical | Large | AI Agent | EC-009 | CLOSED | ScheduleRule, ScheduleException & TimelineInstance. |
+| EC-RE-001 | Hierarchical Activity Nodes | Critical | Large | AI Agent | EC-011 | CLOSED | Hierarchical tree refactor and validation implemented. |
+| EC-RE-002 | Progressive Activity Editor | Critical | Large | AI Agent | EC-RE-001 | CLOSED | Inline hierarchical editing with persistent Undo support. |
+| EC-RE-003 | Scheduling Engine & Daily Instances | Critical | Large | AI Agent | EC-RE-002 | CLOSED | Refined flexible logic with snapshot integrity. |
+| EC-RE-004 | Flexible Rules & Scheduling Editor | High | Medium | AI Agent | EC-RE-003 | CLOSED | Visual time/day editors in Node Inspector. |
+| EC-RE-005 | Metadata Schemas & Context | High | Medium | AI Agent | EC-RE-004 | CLOSED | CRUD and Context logic implemented. |
+| EC-RE-006 | Today Workspace (Actions & Capture) | Critical | Large | AI Agent | EC-RE-005 | CLOSED | Refactored domain hierarchy and dynamic capture. |
+| EC-RE-007 | Contextual Organization (Systems) | Medium | Medium | AI Agent | EC-RE-006 | CLOSED | Grouping activities into top-level Life Systems. |
+| EC-RE-008 | Visual Planning & Today Refinement | High | Large | AI Agent | EC-RE-007 | CLOSED | Real data in Planning and visual polish in Today. |
+| EC-RE-009 | Interruption & Intersection Logic | High | Medium | AI Agent | EC-RE-008 | CLOSED | PASS. Handling rigid tasks and spontaneous events with fluid UI. |
+| EC-RE-010 | Historical Analysis & Trends | High | Large | AI Agent | EC-RE-009 | CLOSED | PASS. Analytics engine for KPIs and trends implemented and audited (60 tests). |
+| EC-RE-011 | Intelligence Dashboard | High | Medium | AI Agent | EC-RE-010 | CLOSED | PASS. Visual analytics, weekly rhythm and adherence charts implemented. |
+| EC-RE-012 | Planificador (Planner) MVP | High | Large | AI Agent | EC-RE-011 | CLOSED | PASS. Interactive timeline with Move, Skip and Catalog integration. |
+| EC-RE-013 | Systems & Activities Refinement | High | Medium | AI Agent | EC-RE-012 | CLOSED | PASS. Real system selection in Activity Builder, dynamic system titles, no UI mocks, 80/80 tests passing. |
+| EC-RE-014 | Project Cleanup & Consistency | Medium | Small | AI Agent | EC-RE-013 | CLOSED | PASS. Removal of orphan files, dead use-cases, navigation residue and doc updates. |
+| EC-RE-015 | Today Execution Surface Refinement | High | Medium | AI Agent | EC-RE-014 | CLOSED | PASS. Visual spine unification, card grammar, synthesized ContextFooter, color tokens. |
+| EC-RE-016 | Plannable Element Domain Analysis | High | Medium | AI Agent | EC-RE-015 | CLOSED | PASS. Formal domain analysis confirming DailyInstance as universal operational node. Zero code changes. |
+| EC-RE-017 | Planning Workspace Consolidation | High | Medium | AI Agent | EC-RE-016 | CLOSED | PASS. Consolidation of PlanningWorkspace into single surface with ModalBottomSheet catalog (Historical EC-013/EC-014). |
+| EC-RE-018 | Backlog Operativo e Integración con Planning | High | Medium | AI Agent | EC-RE-017 | CLOSED | PASS. BacklogItem materialization into DailyInstance, BacklogPanelSheet in Planning, 78/78 tests passing. |
+| EC-RE-019 | Catalog Semantics & Occurrence Materialization Correction | High | Medium | AI Agent | EC-RE-017 | CLOSED | PASS. MaterializeInstanceUseCase fix (sourceRuleId + date), ActivityCard action inversion, 82/82 tests passing, manual runtime validation PASS. |
+| EC-RE-020 | Execution History Lifecycle & Stats Synchronization | High | Medium | AI Agent | EC-RE-019 | CLOSED | PASS. Surgical ActivityExecution deletion by dailyInstanceId on Reset, reactive Stats Flow pipeline, 87/87 tests passing. |
+| EC-RE-021 | Today Execution Surface Visual Alignment & Context Accordion Refinement | Medium | Small | AI Agent | EC-RE-020 | CLOSED | PASS. Unified spine geometry (x=28dp), collapsed ContextFooter accordion, RoutineTheme.colors token migration, 87/87 tests passing. |
+
+---
+
+## Estados Permitidos
+- **DRAFT**: EC en redacción inicial, no lista para revisión.
+- **PENDING**: Tarea en backlog, objetivos definidos pero no lista para iniciar.
+- **READY**: Tarea analizada y lista para ejecución inmediata.
+- **IN_PROGRESS**: Siendo trabajada actualmente por un desarrollador/agente.
+- **IMPLEMENTED**: Código escrito y documentación de implementación finalizada.
+- **AUDIT_PENDING**: En proceso de revisión técnica por un tercero o auto-auditoría.
+- **CHANGES_REQUESTED**: El auditor detectó problemas y solicitó cambios (vuelve a IN_PROGRESS).
+- **USER_REVIEW_PENDING**: Auditoría técnica aprobada, esperando validación final del usuario.
+- **APPROVED**: Auditoría técnica y validación de usuario superadas con éxito.
+- **MERGED**: Código integrado en `develop` y rama de trabajo eliminada.
+- **CLOSED**: Funcionalidad verificada y ciclo de vida finalizado.
+
+---
+
+## Notas de Tareas
+- Las ECs se mueven de estado aquí, pero los detalles técnicos de cada una se gestionan en su archivo respectivo en la carpeta `EC/`.
