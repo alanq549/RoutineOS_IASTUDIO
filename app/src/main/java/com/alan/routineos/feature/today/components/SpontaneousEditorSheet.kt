@@ -32,9 +32,6 @@ import com.alan.routineos.feature.today.model.TodayTimelineUiModel
 
 private enum class PickingType { START, END }
 
-private val DarkSurface = Color(0xFF0D1017)
-private val DarkCard = Color(0xFF171B26)
-
 private fun caretIsAfterNewline(text: String, selection: TextRange): Boolean {
     return selection.end > 0 && text[selection.end - 1] == '\n'
 }
@@ -198,7 +195,7 @@ fun SpontaneousEditorSheet(
                 modifier = Modifier
                     .fillMaxWidth()
                     .clip(RoundedCornerShape(20.dp))
-                    .background(DarkSurface)
+                    .background(RoutineTheme.colors.surface2)
                     .border(1.dp, RoutineTheme.colors.border.copy(alpha = 0.3f), RoundedCornerShape(20.dp))
                     .padding(horizontal = 12.dp, vertical = 8.dp),
                 verticalAlignment = Alignment.CenterVertically
@@ -288,7 +285,7 @@ fun SpontaneousEditorSheet(
                         .fillMaxWidth()
                         .height(48.dp)
                         .clip(RoundedCornerShape(12.dp))
-                        .background(DarkSurface),
+                        .background(RoutineTheme.colors.surface2),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Spacer(modifier = Modifier.width(12.dp))
@@ -315,7 +312,7 @@ fun SpontaneousEditorSheet(
                 if (unifiedCatalog.isNotEmpty()) {
                     Spacer(modifier = Modifier.height(4.dp))
                     Surface(
-                        color = DarkSurface,
+                        color = RoutineTheme.colors.surface2,
                         shape = RoundedCornerShape(12.dp),
                         border = androidx.compose.foundation.BorderStroke(1.dp, RoutineTheme.colors.border.copy(alpha = 0.1f)),
                         modifier = Modifier.fillMaxWidth().heightIn(max = 240.dp)
@@ -438,7 +435,7 @@ fun SpontaneousEditorSheet(
                     modifier = Modifier
                         .fillMaxWidth()
                         .clip(RoundedCornerShape(16.dp))
-                        .background(DarkSurface)
+                        .background(RoutineTheme.colors.surface2)
                         .border(1.dp, RoutineTheme.colors.border.copy(alpha = 0.1f), RoundedCornerShape(16.dp)),
                     colors = TextFieldDefaults.colors(
                         unfocusedContainerColor = Color.Transparent,
@@ -593,7 +590,7 @@ private fun TimeRangePicker(
         modifier = Modifier
             .fillMaxWidth()
             .clip(RoundedCornerShape(20.dp))
-            .background(DarkCard)
+            .background(RoutineTheme.colors.surface2)
             .border(1.dp, RoutineTheme.colors.border.copy(alpha = 0.2f), RoundedCornerShape(20.dp))
             .padding(16.dp)
     ) {
@@ -667,7 +664,7 @@ private fun TimeRangePicker(
                     modifier = Modifier
                         .weight(1f)
                         .clip(RoundedCornerShape(12.dp))
-                        .background(DarkSurface)
+                        .background(RoutineTheme.colors.surface1)
                         .border(1.dp, accentColor.copy(alpha = 0.15f), RoundedCornerShape(12.dp))
                         .clickable { onSetTimeToNow() }
                         .padding(horizontal = 12.dp, vertical = 10.dp),
@@ -698,7 +695,7 @@ private fun TimeChip(
     Column(
         modifier = modifier
             .clip(RoundedCornerShape(12.dp))
-            .background(DarkSurface)
+            .background(RoutineTheme.colors.surface1)
             .border(1.dp, Color.White.copy(alpha = 0.05f), RoundedCornerShape(12.dp))
             .clickable { onClick() }
             .padding(vertical = 10.dp),
@@ -726,7 +723,7 @@ private fun AssociatedTaskItem(title: String, onRemove: () -> Unit) {
         modifier = Modifier
             .fillMaxWidth()
             .clip(RoundedCornerShape(14.dp))
-            .background(DarkSurface)
+            .background(RoutineTheme.colors.surface2)
             .padding(horizontal = 14.dp, vertical = 12.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
@@ -751,7 +748,7 @@ private fun QuickAddTaskInput(
         modifier = Modifier
             .fillMaxWidth()
             .clip(RoundedCornerShape(14.dp))
-            .background(DarkSurface)
+            .background(RoutineTheme.colors.surface2)
             .border(1.dp, RoutineTheme.colors.border.copy(alpha = 0.2f), RoundedCornerShape(14.dp))
             .padding(horizontal = 14.dp),
         verticalAlignment = Alignment.CenterVertically

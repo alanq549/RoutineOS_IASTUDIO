@@ -14,7 +14,6 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CalendarMonth
 import androidx.compose.material.icons.filled.CalendarToday
 import androidx.compose.material.icons.filled.Insights
-import androidx.compose.material.icons.filled.Person
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -79,20 +78,6 @@ class MainActivity : ComponentActivity() {
                             isSelected = currentRoute == AppRoutes.Stats.route,
                             onClick = { 
                                 navController.navigate(AppRoutes.Stats.route) {
-                                    popUpTo(navController.graph.startDestinationId) {
-                                        saveState = true
-                                    }
-                                    launchSingleTop = true
-                                    restoreState = true
-                                }
-                            }
-                        )
-                        BottomNavItem(
-                            label = "Account",
-                            icon = Icons.Default.Person,
-                            isSelected = currentRoute == AppRoutes.Account.route,
-                            onClick = { 
-                                navController.navigate(AppRoutes.Account.route) {
                                     popUpTo(navController.graph.startDestinationId) {
                                         saveState = true
                                     }

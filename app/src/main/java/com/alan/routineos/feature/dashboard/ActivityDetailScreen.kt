@@ -42,9 +42,6 @@ import com.alan.routineos.feature.dashboard.components.getTechnicalIcon
 import com.alan.routineos.feature.dashboard.model.ActivityNodeUiProjection
 import kotlinx.coroutines.flow.SharedFlow
 
-private val DarkSurface = Color(0xFF0D1017)
-private val StitchGray = Color(0xFF1F2C3F)
-
 @Composable
 fun ActivityDetailRoute(
     onBack: () -> Unit,
@@ -317,12 +314,12 @@ private fun NodesList(
     ) {
         item { EngineeringStatsRow(uiState) }
 
-        // 01 // CONTEXTO
+        // 01 // INFORMACIÓN
         item {
             EngineeringSection(
                 number = "01",
-                title = "Contexto",
-                subtitle = "Identidad del molde"
+                title = "Información",
+                subtitle = "Categoría y propósito"
             ) {
                 DetailHeader(
                     description = uiState.activity?.description ?: "",
@@ -333,12 +330,12 @@ private fun NodesList(
             }
         }
 
-        // 02 // HORARIO
+        // 02 // REPETICIÓN
         item {
             EngineeringSection(
                 number = "02",
-                title = "Horario",
-                subtitle = "Programación de sesiones"
+                title = "Repetición",
+                subtitle = "Días y horarios habituales"
             ) {
                 SchedulingSummarySection(
                     rules = uiState.allActivityRules,
@@ -347,12 +344,12 @@ private fun NodesList(
             }
         }
 
-        // 03 // ESTRUCTURA
+        // 03 // PASOS
         item {
             EngineeringSection(
                 number = "03",
-                title = "Estructura",
-                subtitle = "Jerarquía de pasos"
+                title = "Pasos",
+                subtitle = "Subtareas y fases de la rutina"
             ) {
                 Column {
                     QuickAddNodeForm(
@@ -433,8 +430,8 @@ private fun SchedulingSummarySection(
     val frequency = if (rules.isEmpty()) "Sin programar" else "$cadence DÍAS / SEM"
 
     Surface(
-        color = Color(0xFF111721),
-        shape = RoundedCornerShape(16.dp),
+        color = RoutineTheme.colors.surface1,
+        shape = RoutineTheme.shapes.medium,
         border = BorderStroke(1.dp, RoutineTheme.colors.border.copy(alpha = 0.2f)),
         modifier = Modifier.fillMaxWidth().clickable { onManageClick() }
     ) {
@@ -447,7 +444,7 @@ private fun SchedulingSummarySection(
                 Text(
                     text = frequency,
                     style = RoutineTheme.typography.dataLarge.copy(fontSize = 15.sp, fontWeight = FontWeight.Bold, letterSpacing = 1.sp),
-                    color = Color.White
+                    color = RoutineTheme.colors.onSurface
                 )
                 if (rules.isNotEmpty()) {
                     Text(
@@ -466,7 +463,7 @@ private fun SchedulingSummarySection(
             
             Surface(
                 color = RoutineTheme.colors.surface2,
-                shape = RoundedCornerShape(8.dp),
+                shape = RoutineTheme.shapes.small,
                 modifier = Modifier.size(40.dp),
                 border = BorderStroke(1.dp, RoutineTheme.colors.border.copy(alpha = 0.2f))
             ) {
@@ -488,13 +485,13 @@ private fun DetailHeader(
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .background(Color(0xFF111721), RoundedCornerShape(16.dp))
-            .border(1.dp, RoutineTheme.colors.border.copy(alpha = 0.2f), RoundedCornerShape(16.dp))
+            .background(RoutineTheme.colors.surface1, RoutineTheme.shapes.medium)
+            .border(1.dp, RoutineTheme.colors.border.copy(alpha = 0.2f), RoutineTheme.shapes.medium)
             .padding(16.dp)
     ) {
         // SUBSISTEMA SECTION
         Text(
-            text = "SISTEMA",
+            text = "ÁREA O CATEGORÍA",
             style = RoutineTheme.typography.labelCaps.copy(fontSize = 9.sp, color = RoutineTheme.colors.onSurfaceVariant.copy(alpha = 0.5f))
         )
         Spacer(modifier = Modifier.height(8.dp))
@@ -516,8 +513,8 @@ private fun DetailHeader(
         )
         Spacer(modifier = Modifier.height(8.dp))
         Surface(
-            color = Color(0xFF0D121A),
-            shape = RoundedCornerShape(12.dp),
+            color = RoutineTheme.colors.surface2,
+            shape = RoutineTheme.shapes.small,
             border = BorderStroke(1.dp, RoutineTheme.colors.border.copy(alpha = 0.1f)),
             modifier = Modifier.fillMaxWidth()
         ) {
@@ -542,8 +539,8 @@ private fun SystemAssignmentRow(
     val accentColor = try { Color(android.graphics.Color.parseColor(currentSystem?.colorHex ?: "")) } catch(e: Exception) { RoutineTheme.colors.primary }
 
     Surface(
-        color = Color(0xFF0D121A),
-        shape = RoundedCornerShape(12.dp),
+        color = RoutineTheme.colors.surface2,
+        shape = RoutineTheme.shapes.small,
         border = BorderStroke(1.dp, accentColor.copy(alpha = 0.2f)),
         modifier = Modifier.fillMaxWidth().clickable { expanded = true }
     ) {
@@ -707,12 +704,12 @@ private fun NodeItem(
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .clip(RoundedCornerShape(12.dp))
-                .background(if (isEditing) RoutineTheme.colors.surface2 else Color(0xFF111721))
+                .clip(RoutineTheme.shapes.small)
+                .background(if (isEditing) RoutineTheme.colors.surface2 else RoutineTheme.colors.surface1)
                 .border(
                     width = 1.dp,
                     color = if (isEditing) semanticColor else RoutineTheme.colors.border.copy(alpha = 0.15f),
-                    shape = RoundedCornerShape(12.dp)
+                    shape = RoutineTheme.shapes.small
                 )
                 .combinedClickable(onClick = onNodeClick)
                 .padding(14.dp),
@@ -818,8 +815,8 @@ private fun NodeInspectorShell(
         modifier = Modifier
             .fillMaxWidth()
             .padding(16.dp)
-            .background(Color(0xFF0B0E14), RoundedCornerShape(12.dp))
-            .border(1.dp, RoutineTheme.colors.border.copy(alpha = 0.1f), RoundedCornerShape(12.dp))
+            .background(RoutineTheme.colors.background, RoutineTheme.shapes.small)
+            .border(1.dp, RoutineTheme.colors.border.copy(alpha = 0.15f), RoutineTheme.shapes.small)
             .padding(12.dp)
     ) {
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -925,8 +922,8 @@ private fun TechnicalStatBadge(
     isHighlight: Boolean = false
 ) {
     Surface(
-        color = Color(0xFF111721),
-        shape = RoundedCornerShape(8.dp),
+        color = RoutineTheme.colors.surface1,
+        shape = RoutineTheme.shapes.small,
         modifier = modifier
     ) {
         Column(
@@ -942,7 +939,7 @@ private fun TechnicalStatBadge(
                 style = RoutineTheme.typography.labelCaps.copy(
                     fontSize = 10.sp, 
                     fontWeight = FontWeight.Black,
-                    color = if (isHighlight) RoutineTheme.colors.secondary else Color.White
+                    color = if (isHighlight) RoutineTheme.colors.secondary else RoutineTheme.colors.onSurface
                 )
             )
         }

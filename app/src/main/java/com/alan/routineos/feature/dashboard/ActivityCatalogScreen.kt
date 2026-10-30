@@ -18,9 +18,11 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.alan.routineos.core.designsystem.component.RoutineDropdownMenu
 import com.alan.routineos.core.designsystem.component.RoutineDropdownMenuItem
+import com.alan.routineos.core.designsystem.component.RoutineEmptyState
 import com.alan.routineos.core.designsystem.theme.RoutineTheme
 import com.alan.routineos.feature.dashboard.components.ActivityCard
 import com.alan.routineos.feature.dashboard.components.LifeSystemEditorSheet
+import com.alan.routineos.feature.dashboard.model.ActivityCardModel
 
 @Composable
 fun ActivityCatalogScreen(
@@ -38,6 +40,8 @@ fun ActivityCatalogScreen(
     modifier: Modifier = Modifier,
     isSheetMode: Boolean = false
 ) {
+    var activityToDelete by remember { mutableStateOf<ActivityCardModel?>(null) }
+
     Box(modifier = modifier.fillMaxSize()) {
         Column(
             modifier = Modifier
@@ -48,7 +52,7 @@ fun ActivityCatalogScreen(
             if (!isSheetMode) {
                 Spacer(modifier = Modifier.height(RoutineTheme.spacing.lg))
             } else {
-                Spacer(modifier = Modifier.height(8.dp))
+                Spacer(modifier = Modifier.height(RoutineTheme.spacing.sm))
             }
 
             // Header Row
@@ -59,17 +63,20 @@ fun ActivityCatalogScreen(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
-                Row(verticalAlignment = Alignment.CenterVertically) {
+                Row(
+                    modifier = Modifier.weight(1f, fill = false),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
                     Text(
-                        text = if (isSheetMode) "Catálogo de Actividades" else "Actividades",
+                        text = if (isSheetMode) "Mis Rutinas y Actividades" else "Mis Actividades",
                         style = RoutineTheme.typography.headlineMedium,
                         color = RoutineTheme.colors.onSurface,
                         fontWeight = FontWeight.Bold
                     )
-                    Spacer(modifier = Modifier.width(8.dp))
+                    Spacer(modifier = Modifier.width(RoutineTheme.spacing.sm))
                     Text(
                         text = "${uiState.myActivities.size}",
-                        style = RoutineTheme.typography.dataLarge.copy(fontSize = 13.sp),
+                        style = RoutineTheme.typography.dataMedium,
                         color = RoutineTheme.colors.primary,
                         modifier = Modifier
                             .background(RoutineTheme.colors.surface1, RoutineTheme.shapes.small)
@@ -78,10 +85,37 @@ fun ActivityCatalogScreen(
                     )
                 }
 
-                TextButton(onClick = onAddSystem) {
-                    Icon(Icons.Default.Add, null, modifier = Modifier.size(16.dp))
-                    Spacer(modifier = Modifier.width(4.dp))
-                    Text(" SISTEMA", style = RoutineTheme.typography.labelCaps)
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(6.dp)
+                ) {
+                    Button(
+                        onClick = onAddActivity,
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = RoutineTheme.colors.primary,
+                            contentColor = Color.Black
+                        ),
+                        shape = RoutineTheme.shapes.small,
+                        contentPadding = PaddingValues(horizontal = 10.dp, vertical = 4.dp),
+                        modifier = Modifier.height(34.dp)
+                    ) {
+                        Icon(Icons.Default.Add, contentDescription = null, modifier = Modifier.size(14.dp))
+                        Spacer(modifier = Modifier.width(4.dp))
+                        Text(
+                            text = "RUTINA",
+                            style = RoutineTheme.typography.labelCaps.copy(fontSize = 11.sp, fontWeight = FontWeight.Bold)
+                        )
+                    }
+
+                    TextButton(
+                        onClick = onAddSystem,
+                        contentPadding = PaddingValues(horizontal = 8.dp, vertical = 4.dp),
+                        modifier = Modifier.height(34.dp)
+                    ) {
+                        Icon(Icons.Default.Add, null, modifier = Modifier.size(RoutineTheme.dimensions.iconXs))
+                        Spacer(modifier = Modifier.width(2.dp))
+                        Text("ÁREA", style = RoutineTheme.typography.labelCaps.copy(fontSize = 10.sp))
+                    }
                 }
             }
 
@@ -121,26 +155,26 @@ fun ActivityCatalogScreen(
 
             Column(modifier = Modifier.padding(horizontal = RoutineTheme.spacing.md)) {
                 if (uiState.myActivities.isEmpty()) {
-                    Box(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(vertical = 48.dp),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Text(
-                            text = if (uiState.selectedSystemId == null) "No hay actividades registradas" else "Sin actividades en este sistema",
-                            style = RoutineTheme.typography.bodyBase,
-                            color = RoutineTheme.colors.onSurfaceVariant
-                        )
-                    }
+                    val isFiltered = uiState.selectedSystemId != null
+                    RoutineEmptyState(
+                        title = if (isFiltered) "Sin actividades en esta área" else "Sin actividades registradas",
+                        description = if (isFiltered) {
+                            "No tienes rutinas asignadas a este sistema de vida."
+                        } else {
+                            "Crea tu primera actividad habitual para estructurar tus días."
+                        },
+                        icon = Icons.Default.AccountTree,
+                        modifier = Modifier.fillMaxWidth()
+                    )
                 } else {
                     uiState.myActivities.forEach { activity ->
                         ActivityCard(
                             activity = activity,
                             onClick = { onActivityClick(activity.id) },
-                            onDeleteClick = onDeleteActivity?.let { callback -> { callback(activity.id) } }
+                            onEditClick = { onActivityClick(activity.id) },
+                            onDeleteClick = if (onDeleteActivity != null) { { activityToDelete = activity } } else null
                         )
-                        Spacer(modifier = Modifier.height(RoutineTheme.spacing.lg))
+                        Spacer(modifier = Modifier.height(RoutineTheme.spacing.md))
                     }
                 }
             }
@@ -159,6 +193,49 @@ fun ActivityCatalogScreen(
             ) {
                 Icon(Icons.Default.Add, contentDescription = "Add activity")
             }
+        }
+
+        if (activityToDelete != null) {
+            val target = activityToDelete!!
+            AlertDialog(
+                onDismissRequest = { activityToDelete = null },
+                title = {
+                    Text(
+                        text = "¿Eliminar rutina?",
+                        style = RoutineTheme.typography.headlineMedium,
+                        color = RoutineTheme.colors.onSurface
+                    )
+                },
+                text = {
+                    Text(
+                        text = "¿Estás seguro de que deseas eliminar la rutina \"${target.title}\"? Esta acción no se puede deshacer y se eliminarán sus pasos configurados.",
+                        style = RoutineTheme.typography.bodyBase,
+                        color = RoutineTheme.colors.onSurfaceVariant
+                    )
+                },
+                confirmButton = {
+                    Button(
+                        onClick = {
+                            onDeleteActivity?.invoke(target.id)
+                            activityToDelete = null
+                        },
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = RoutineTheme.colors.error,
+                            contentColor = Color.White
+                        ),
+                        shape = RoutineTheme.shapes.small
+                    ) {
+                        Text("Eliminar", style = RoutineTheme.typography.labelCaps.copy(fontWeight = FontWeight.Bold))
+                    }
+                },
+                dismissButton = {
+                    TextButton(onClick = { activityToDelete = null }) {
+                        Text("Cancelar", style = RoutineTheme.typography.labelCaps, color = RoutineTheme.colors.onSurfaceVariant)
+                    }
+                },
+                containerColor = RoutineTheme.colors.surface1,
+                shape = RoutineTheme.shapes.large
+            )
         }
 
         if (uiState.editingSystem != null) {

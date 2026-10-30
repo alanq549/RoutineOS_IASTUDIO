@@ -22,9 +22,6 @@ import androidx.compose.ui.unit.sp
 import com.alan.routineos.core.designsystem.theme.RoutineTheme
 import com.alan.routineos.domain.model.LifeSystem
 
-private val DarkSurface = Color(0xFF0D1017)
-private val DarkCard = Color(0xFF171B26)
-
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun LifeSystemEditorSheet(
@@ -128,7 +125,7 @@ fun LifeSystemEditorSheet(
                 modifier = Modifier
                     .fillMaxWidth()
                     .clip(RoundedCornerShape(16.dp))
-                    .background(DarkSurface)
+                    .background(RoutineTheme.colors.surface2)
                     .border(1.dp, currentSemanticColor.copy(alpha = 0.3f), RoundedCornerShape(16.dp)),
                 colors = TextFieldDefaults.colors(
                     unfocusedContainerColor = Color.Transparent,
@@ -154,7 +151,7 @@ fun LifeSystemEditorSheet(
                         modifier = Modifier
                             .size(48.dp)
                             .clip(RoundedCornerShape(12.dp))
-                            .background(if (isSelected) currentSemanticColor.copy(alpha = 0.2f) else DarkSurface)
+                            .background(if (isSelected) currentSemanticColor.copy(alpha = 0.2f) else RoutineTheme.colors.surface2)
                             .border(1.dp, if (isSelected) currentSemanticColor else Color.Transparent, RoundedCornerShape(12.dp))
                             .clickable { onUpdateFields(system.title, key, system.colorHex) },
                         contentAlignment = Alignment.Center

@@ -2,6 +2,7 @@
 package com.alan.routineos.feature.stats.components
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -79,7 +80,7 @@ private fun RhythmDayColumn(
     onClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    val dateFormatter = DateTimeFormatter.ofPattern("EEE", Locale.getDefault())
+    val dateFormatter = DateTimeFormatter.ofPattern("EEE", Locale("es", "ES"))
     
     Column(
         modifier = modifier
@@ -131,7 +132,7 @@ private fun RhythmDayColumn(
 
 @Composable
 fun DaySummaryContent(detail: DailyStats, modifier: Modifier = Modifier) {
-    val fullDateFormatter = DateTimeFormatter.ofPattern("EEEE d 'de' MMMM", Locale.getDefault())
+    val fullDateFormatter = DateTimeFormatter.ofPattern("EEEE, d 'de' MMMM", Locale("es", "ES"))
     
     RoutineCard(modifier = modifier.fillMaxWidth()) {
         Column(modifier = Modifier.padding(24.dp)) {
@@ -187,44 +188,91 @@ private fun ActivityGroupRow(title: String, occurrences: List<ResolvedOccurrence
         if (title != "Espontáneas") {
             Text(
                 text = title.uppercase(),
-                style = RoutineTheme.typography.labelCaps,
+                style = RoutineTheme.typography.labelCaps.copy(fontWeight = FontWeight.Bold),
                 color = RoutineTheme.colors.primary,
-                modifier = Modifier.padding(bottom = 4.dp)
+                modifier = Modifier.padding(bottom = 2.dp)
             )
         }
         
         occurrences.forEach { occ ->
+            val isCompleted = occ.instance.status == DailyInstanceStatus.COMPLETED
+            val isOmitted = occ.instance.status == DailyInstanceStatus.OMITTED
+            val statusText = when (occ.instance.status) {
+                DailyInstanceStatus.COMPLETED -> "COMPLETADA"
+                DailyInstanceStatus.OMITTED -> "OMITIDA"
+                DailyInstanceStatus.MODIFIED -> "MODIFICADA"
+                DailyInstanceStatus.PLANNED -> "PROGRAMADA"
+            }
+
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
                     .background(RoutineTheme.colors.surface2, RoutineTheme.shapes.small)
-                    .padding(12.dp),
+                    .border(1.dp, RoutineTheme.colors.border.copy(alpha = 0.5f), RoutineTheme.shapes.small)
+                    .padding(horizontal = 14.dp, vertical = 12.dp),
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
-                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                Row(
+                    modifier = Modifier.weight(1f, fill = false),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
                     Icon(
-                        imageVector = if (occ.instance.status == DailyInstanceStatus.COMPLETED) Icons.Default.CheckCircle else Icons.Default.RadioButtonUnchecked,
+                        imageVector = when {
+                            isCompleted -> Icons.Default.CheckCircle
+                            isOmitted -> Icons.Default.Cancel
+                            else -> Icons.Default.RadioButtonUnchecked
+                        },
                         contentDescription = null,
-                        tint = if (occ.instance.status == DailyInstanceStatus.COMPLETED) RoutineTheme.colors.primary else RoutineTheme.colors.onSurfaceVariant,
+                        tint = when {
+                            isCompleted -> RoutineTheme.colors.primary
+                            isOmitted -> RoutineTheme.colors.onSurfaceVariant.copy(alpha = 0.5f)
+                            else -> RoutineTheme.colors.primary.copy(alpha = 0.7f)
+                        },
                         modifier = Modifier.size(20.dp)
                     )
                     Column {
-                        Text(occ.instance.titleSnapshot, style = RoutineTheme.typography.bodyBase, color = RoutineTheme.colors.onSurface)
+                        Text(
+                            text = occ.instance.titleSnapshot,
+                            style = RoutineTheme.typography.bodyBase.copy(
+                                fontWeight = FontWeight.Medium,
+                                textDecoration = if (isOmitted) androidx.compose.ui.text.style.TextDecoration.LineThrough else null
+                            ),
+                            color = if (isOmitted) RoutineTheme.colors.onSurfaceVariant.copy(alpha = 0.6f) else RoutineTheme.colors.onSurface
+                        )
                         if (occ.isAdHoc) {
                             Text(
                                 "ESPONTÁNEA", 
-                                style = RoutineTheme.typography.labelCaps.copy(fontSize = 9.sp),
+                                style = RoutineTheme.typography.captionTag,
                                 color = RoutineTheme.colors.tertiary
                             )
                         }
                     }
                 }
-                Text(
-                    text = occ.instance.status.name,
-                    style = RoutineTheme.typography.labelCaps.copy(fontSize = 10.sp),
-                    color = if (occ.instance.status == DailyInstanceStatus.COMPLETED) RoutineTheme.colors.primary else RoutineTheme.colors.onSurfaceVariant
-                )
+
+                Box(
+                    modifier = Modifier
+                        .background(
+                            when {
+                                isCompleted -> RoutineTheme.colors.primary.copy(alpha = 0.12f)
+                                isOmitted -> RoutineTheme.colors.surface3
+                                else -> RoutineTheme.colors.surface1
+                            },
+                            RoutineTheme.shapes.pill
+                        )
+                        .padding(horizontal = 8.dp, vertical = 3.dp)
+                ) {
+                    Text(
+                        text = statusText,
+                        style = RoutineTheme.typography.captionTag,
+                        color = when {
+                            isCompleted -> RoutineTheme.colors.primary
+                            isOmitted -> RoutineTheme.colors.onSurfaceVariant
+                            else -> RoutineTheme.colors.onSurfaceVariant.copy(alpha = 0.8f)
+                        }
+                    )
+                }
             }
         }
     }

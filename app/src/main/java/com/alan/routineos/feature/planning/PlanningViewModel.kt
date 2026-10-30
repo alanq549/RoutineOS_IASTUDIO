@@ -8,6 +8,8 @@ import com.alan.routineos.domain.model.ActivityNode
 import com.alan.routineos.domain.model.DailyInstance
 import com.alan.routineos.domain.model.DailyInstanceRole
 import com.alan.routineos.domain.model.DailyInstanceStatus
+import com.alan.routineos.domain.model.Deadline
+import com.alan.routineos.domain.model.formatDeadlineText
 import com.alan.routineos.domain.model.HierarchicalTimelineEntry
 import com.alan.routineos.domain.model.HierarchyCompletion
 import com.alan.routineos.domain.model.Note
@@ -127,8 +129,9 @@ class PlanningViewModel @Inject constructor(
     }.flatMapLatest { p ->
         combine(
             getHierarchicalTimelineUseCase(p.date),
-            repository.getAllBacklogItems()
-        ) { entries, backlogItems ->
+            repository.getAllBacklogItems(),
+            repository.getAllDeadlines()
+        ) { entries, backlogItems, deadlines ->
             currentEntries = entries
             val scheduled = entries.filter { it.effectiveStartTimeMinutes != null }
             val unscheduled = entries.filter { it.effectiveStartTimeMinutes == null }
@@ -141,7 +144,7 @@ class PlanningViewModel @Inject constructor(
             val openBacklog = backlogItems.filter { it.status == BacklogItemStatus.OPEN }
 
             val allUiTimelineModels =
-                (scheduled + unscheduled).map { it.toUiModel(p.expanded.contains(it.root.instance.id)) }
+                (scheduled + unscheduled).map { it.toUiModel(p.expanded.contains(it.root.instance.id), deadlines) }
 
             val unifiedCatalog: List<UnifiedLinkingResult> =
                 if (p.linkingQuery.isBlank()) emptyList()
@@ -276,7 +279,10 @@ class PlanningViewModel @Inject constructor(
         return !date.isBefore(startOfCurrentWeek) && !date.isAfter(endOfCurrentWeek)
     }
 
-    private fun HierarchicalTimelineEntry.toUiModel(isExpanded: Boolean): TodayTimelineUiModel {
+    private fun HierarchicalTimelineEntry.toUiModel(
+        isExpanded: Boolean,
+        deadlines: List<com.alan.routineos.domain.model.Deadline> = emptyList()
+    ): TodayTimelineUiModel {
         val start = effectiveStartTimeMinutes
         val duration = totalDurationMinutes
         val timeRange = if (start != null) {
@@ -284,6 +290,13 @@ class PlanningViewModel @Inject constructor(
             if (end != null && end > start) "${formatMinutes(start)} - ${formatMinutes(end)}"
             else formatMinutes(start)
         } else ""
+
+        val matchedDeadline = deadlines.find { 
+            it.instanceId == root.instance.id || 
+            (root.instance.backlogId != null && it.backlogId == root.instance.backlogId) ||
+            ((root.instance.target as? ScheduleTarget.Definition)?.id != null && it.definitionId == (root.instance.target as? ScheduleTarget.Definition)?.id)
+        }
+        val deadlineUi = matchedDeadline?.let { formatDeadlineText(it.dueAt) }
 
         return TodayTimelineUiModel(
             id = root.instance.id,
@@ -300,6 +313,8 @@ class PlanningViewModel @Inject constructor(
             completedSubNodesCount = completedCount,
             totalSubNodesCount = totalCount,
             actionProtocol = root.instance.actionProtocol,
+            deadline = deadlineUi,
+            isExternalCalendar = root.instance.descriptionSnapshot.contains("Calendario", ignoreCase = true) || root.instance.descriptionSnapshot.contains("Calendar", ignoreCase = true),
             itemType = when (root.instance.role) {
                 DailyInstanceRole.ACTIVITY -> PlanningItemType.ACTIVITY
                 DailyInstanceRole.REMINDER -> PlanningItemType.REMINDER

@@ -77,5 +77,7 @@ data class TodayTimelineUiModel(
     val actionProtocol: ActionProtocol = ActionProtocol.TIMER,
     val itemType: PlanningItemType = PlanningItemType.ACTIVITY,
     val interception: InterceptionUiModel? = null,
-    val context: ContextItemsUiModel? = null
+    val context: ContextItemsUiModel? = null,
+    val deadline: DeadlineUiModel? = null,
+    val isExternalCalendar: Boolean = false
 )

@@ -2,9 +2,15 @@ package com.alan.routineos.feature.stats
 
 import androidx.compose.animation.*
 import androidx.compose.animation.core.tween
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Insights
+import androidx.compose.material.icons.filled.Person
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -12,6 +18,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.alan.routineos.core.designsystem.component.RoutineCard
+import com.alan.routineos.core.designsystem.component.RoutineEmptyState
 import com.alan.routineos.core.designsystem.component.RoutineScaffold
 import com.alan.routineos.core.designsystem.theme.RoutineTheme
 import com.alan.routineos.feature.stats.components.*
@@ -22,6 +30,7 @@ fun StatsScreen(
     uiState: StatsUiState,
     onPeriodSelected: (StatsPeriod) -> Unit,
     modifier: Modifier = Modifier,
+    onNavigateToAccount: (() -> Unit)? = null,
     bottomBar: @Composable () -> Unit = {}
 ) {
     RoutineScaffold(
@@ -40,14 +49,39 @@ fun StatsScreen(
                     .padding(horizontal = RoutineTheme.spacing.marginMobile)
                     .padding(top = RoutineTheme.spacing.lg)
             ) {
-                Text(
-                    "Estadísticas",
-                    style = RoutineTheme.typography.displayLarge,
-                    color = RoutineTheme.colors.primary,
-                    fontWeight = FontWeight.Bold
-                )
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        "Estadísticas",
+                        style = RoutineTheme.typography.displayLarge,
+                        color = RoutineTheme.colors.primary,
+                        fontWeight = FontWeight.Bold
+                    )
 
-                Spacer(modifier = Modifier.height(14.dp))
+                    if (onNavigateToAccount != null) {
+                        IconButton(onClick = onNavigateToAccount) {
+                            Box(
+                                modifier = Modifier
+                                    .size(36.dp)
+                                    .background(RoutineTheme.colors.surface2, CircleShape)
+                                    .border(1.dp, RoutineTheme.colors.border, CircleShape),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.Person,
+                                    contentDescription = "Cuenta",
+                                    tint = RoutineTheme.colors.onSurfaceVariant,
+                                    modifier = Modifier.size(20.dp)
+                                )
+                            }
+                        }
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(RoutineTheme.spacing.md))
 
                 StatsPeriodSelector(
                     selectedPeriod = uiState.selectedPeriod,
@@ -56,7 +90,7 @@ fun StatsScreen(
                 )
             }
 
-            Spacer(modifier = Modifier.height(18.dp))
+            Spacer(modifier = Modifier.height(RoutineTheme.spacing.md))
 
             if (uiState.isLoading) {
                 Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
@@ -81,7 +115,7 @@ private fun StatsScrollableContent(uiState: StatsUiState) {
             .verticalScroll(rememberScrollState())
             .padding(horizontal = RoutineTheme.spacing.marginMobile)
             .padding(bottom = RoutineTheme.spacing.xl),
-        verticalArrangement = Arrangement.spacedBy(32.dp)
+        verticalArrangement = Arrangement.spacedBy(24.dp)
     ) {
         // GLOBAL SUMMARY
         Row(
@@ -98,6 +132,41 @@ private fun StatsScrollableContent(uiState: StatsUiState) {
                 value = snapshot.executionConsistency?.let { "${(it * 100).toInt()}%" } ?: "N/A",
                 modifier = Modifier.weight(1f)
             )
+        }
+
+        // EXECUTION VS PLANNING SUMMARY
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(RoutineTheme.spacing.md)
+        ) {
+            SummaryCard(
+                label = "Planificado",
+                value = snapshot.plannedHours?.let { "${it.toInt()} h" } ?: "0 h",
+                modifier = Modifier.weight(1f)
+            )
+            SummaryCard(
+                label = "Ejecutado",
+                value = snapshot.executedHours?.let { "${it.toInt()} h" } ?: "0 h",
+                modifier = Modifier.weight(1f)
+            )
+        }
+
+        if (snapshot.deadlinesTotal > 0) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(RoutineTheme.spacing.md)
+            ) {
+                SummaryCard(
+                    label = "Compromisos a tiempo",
+                    value = "${snapshot.deadlinesMet}/${snapshot.deadlinesTotal}",
+                    modifier = Modifier.weight(1f)
+                )
+                SummaryCard(
+                    label = "Omitidas",
+                    value = "${snapshot.omittedCount}",
+                    modifier = Modifier.weight(1f)
+                )
+            }
         }
 
         // GRANULAR VIEW (Animated Rhythm/Cycle)
@@ -120,7 +189,7 @@ private fun StatsScrollableContent(uiState: StatsUiState) {
                 }
                 StatsPeriod.MONTH -> {
                     snapshot.monthlyStats.firstOrNull()?.let { 
-                        MonthlyCycleView(monthStats = it)
+                         MonthlyCycleView(monthStats = it)
                     }
                 }
                 StatsPeriod.YEAR -> {
@@ -131,7 +200,7 @@ private fun StatsScrollableContent(uiState: StatsUiState) {
 
         // ADHERENCE BREAKDOWN (Systems)
         AdherenceList(
-            title = "Adherencia por Sistema",
+            title = "Adherencia por Área",
             systems = snapshot.systemAdherence
         )
 
@@ -155,21 +224,20 @@ private fun StatsScrollableContent(uiState: StatsUiState) {
 
 @Composable
 private fun SummaryCard(label: String, value: String, modifier: Modifier = Modifier) {
-    Surface(
-        color = RoutineTheme.colors.surface2,
-        shape = RoutineTheme.shapes.medium,
+    RoutineCard(
+        containerColor = RoutineTheme.colors.surface1,
         modifier = modifier
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
             Text(
-                text = label,
-                style = RoutineTheme.typography.labelCaps.copy(fontSize = 10.sp),
-                color = RoutineTheme.colors.onSurfaceVariant
+                text = label.uppercase(),
+                style = RoutineTheme.typography.labelCaps.copy(fontSize = 10.sp, letterSpacing = 1.sp),
+                color = RoutineTheme.colors.onSurfaceVariant.copy(alpha = 0.8f)
             )
-            Spacer(modifier = Modifier.height(4.dp))
+            Spacer(modifier = Modifier.height(6.dp))
             Text(
                 text = value,
-                style = RoutineTheme.typography.dataLarge,
+                style = RoutineTheme.typography.dataLarge.copy(fontSize = 20.sp, fontWeight = FontWeight.Bold),
                 color = RoutineTheme.colors.primary
             )
         }
@@ -179,17 +247,10 @@ private fun SummaryCard(label: String, value: String, modifier: Modifier = Modif
 @Composable
 private fun EmptyStatsView() {
     Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-        Column(horizontalAlignment = Alignment.CenterHorizontally) {
-            Text(
-                "Sin Actividad",
-                style = RoutineTheme.typography.headlineMedium,
-                color = RoutineTheme.colors.onSurfaceVariant
-            )
-            Text(
-                "No hay ocurrencias registradas en este periodo",
-                style = RoutineTheme.typography.bodyBase,
-                color = RoutineTheme.colors.onSurfaceVariant.copy(alpha = 0.6f)
-            )
-        }
+        RoutineEmptyState(
+            title = "Sin actividad registrada",
+            description = "No hay ocurrencias registradas en este periodo",
+            icon = Icons.Default.Insights
+        )
     }
 }

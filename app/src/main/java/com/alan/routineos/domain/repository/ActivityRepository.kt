@@ -87,4 +87,9 @@ interface ActivityRepository {
     suspend fun getBacklogItemById(id: String): BacklogItem? = null
     suspend fun upsertBacklogItem(item: BacklogItem) {}
     suspend fun deleteBacklogItem(id: String) {}
+
+    // Deadlines
+    fun getAllDeadlines(): Flow<List<com.alan.routineos.domain.model.Deadline>> = flowOf(emptyList())
+    suspend fun upsertDeadline(deadline: com.alan.routineos.domain.model.Deadline) {}
+    suspend fun deleteDeadline(id: String) {}
 }

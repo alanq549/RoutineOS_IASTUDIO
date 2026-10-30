@@ -24,20 +24,43 @@ private enum class QuickPickingType { START, END }
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun QuickAddDialog(
-    onConfirm: (String, Int?, Int?) -> Unit,
+    onConfirm: (String, Int?, Int?, Long?) -> Unit,
     onDismiss: () -> Unit
 ) {
     var text by remember { mutableStateOf("") }
-    var isScheduleMode by remember { mutableStateOf(false) }
+    // Mode: 0 = Ahora, 1 = Programar, 2 = Pendiente (sin hora)
+    var selectedMode by remember { mutableIntStateOf(0) }
     
     // Range State
     var startTimeMinutes by remember { mutableStateOf<Int?>(null) }
     var endTimeMinutes by remember { mutableStateOf<Int?>(null) }
     
+    // Deadline State
+    var deadlineMillis by remember { mutableStateOf<Long?>(null) }
+    var showDeadlinePicker by remember { mutableStateOf(false) }
+    val datePickerState = rememberDatePickerState()
+
     // Time Picker State
     var pickingType by remember { mutableStateOf<QuickPickingType?>(null) }
     val timePickerState = rememberTimePickerState()
     var errorMessage by remember { mutableStateOf<String?>(null) }
+
+    if (showDeadlinePicker) {
+        DatePickerDialog(
+            onDismissRequest = { showDeadlinePicker = false },
+            confirmButton = {
+                TextButton(onClick = {
+                    deadlineMillis = datePickerState.selectedDateMillis
+                    showDeadlinePicker = false
+                }) { Text("Confirmar") }
+            },
+            dismissButton = {
+                TextButton(onClick = { showDeadlinePicker = false }) { Text("Cancelar") }
+            }
+        ) {
+            DatePicker(state = datePickerState)
+        }
+    }
 
     Dialog(
         onDismissRequest = onDismiss,
@@ -47,7 +70,7 @@ fun QuickAddDialog(
             modifier = Modifier
                 .padding(24.dp)
                 .fillMaxWidth(),
-            shape = RoundedCornerShape(24.dp),
+            shape = RoutineTheme.shapes.large,
             color = RoutineTheme.colors.surface1,
             border = androidx.compose.foundation.BorderStroke(1.dp, RoutineTheme.colors.border.copy(alpha = 0.5f))
         ) {
@@ -71,7 +94,7 @@ fun QuickAddDialog(
                         )
                         Spacer(modifier = Modifier.width(12.dp))
                         Text(
-                            text = "Nueva Actividad",
+                            text = "Captura Rápida",
                             style = RoutineTheme.typography.headlineMedium.copy(
                                 fontSize = 20.sp,
                                 fontWeight = FontWeight.Bold
@@ -84,20 +107,7 @@ fun QuickAddDialog(
                     }
                 }
 
-                Spacer(modifier = Modifier.height(32.dp))
-
-                // QUESTION
-                Text(
-                    text = "¿QUÉ VAS A HACER?",
-                    style = RoutineTheme.typography.labelCaps.copy(
-                        fontSize = 11.sp,
-                        letterSpacing = 1.sp,
-                        fontWeight = FontWeight.Bold
-                    ),
-                    color = RoutineTheme.colors.primary
-                )
-
-                Spacer(modifier = Modifier.height(12.dp))
+                Spacer(modifier = Modifier.height(24.dp))
 
                 // INPUT
                 TextField(
@@ -105,7 +115,7 @@ fun QuickAddDialog(
                     onValueChange = { text = it },
                     placeholder = { 
                         Text(
-                            "Ej: Meditación, Leer artículo...",
+                            "¿Qué vas a hacer?",
                             color = RoutineTheme.colors.onSurfaceVariant.copy(alpha = 0.5f)
                         ) 
                     },
@@ -120,14 +130,15 @@ fun QuickAddDialog(
                         unfocusedTextColor = RoutineTheme.colors.onSurface
                     ),
                     textStyle = RoutineTheme.typography.headlineMedium.copy(
-                        fontSize = 22.sp,
+                        fontSize = 20.sp,
                         fontWeight = FontWeight.Medium
-                    )
+                    ),
+                    singleLine = true
                 )
 
-                Spacer(modifier = Modifier.height(32.dp))
+                Spacer(modifier = Modifier.height(20.dp))
 
-                // MODE SELECTOR
+                // MODE SELECTOR (3 options: AHORA, PROGRAMAR, PENDIENTE)
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -136,23 +147,29 @@ fun QuickAddDialog(
                         .padding(4.dp)
                 ) {
                     SelectorOption(
-                        label = "AHORA MISMO",
-                        isSelected = !isScheduleMode,
+                        label = "AHORA",
+                        isSelected = selectedMode == 0,
                         modifier = Modifier.weight(1f),
-                        onClick = { isScheduleMode = false }
+                        onClick = { selectedMode = 0 }
                     )
                     SelectorOption(
-                        label = "PROGRAMAR",
-                        isSelected = isScheduleMode,
+                        label = "HORARIO",
+                        isSelected = selectedMode == 1,
                         modifier = Modifier.weight(1f),
                         onClick = { 
-                            isScheduleMode = true
+                            selectedMode = 1
                             if (startTimeMinutes == null) pickingType = QuickPickingType.START
                         }
                     )
+                    SelectorOption(
+                        label = "PENDIENTE",
+                        isSelected = selectedMode == 2,
+                        modifier = Modifier.weight(1f),
+                        onClick = { selectedMode = 2 }
+                    )
                 }
 
-                if (isScheduleMode) {
+                if (selectedMode == 1) {
                     Spacer(modifier = Modifier.height(16.dp))
                     Row(
                         modifier = Modifier.fillMaxWidth(),
@@ -188,28 +205,93 @@ fun QuickAddDialog(
                     }
                 }
 
-                Spacer(modifier = Modifier.height(32.dp))
+                Spacer(modifier = Modifier.height(16.dp))
+
+                // DEADLINE PICKER ROW
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    if (deadlineMillis == null) {
+                        Surface(
+                            onClick = { showDeadlinePicker = true },
+                            shape = RoutineTheme.shapes.pill,
+                            color = RoutineTheme.colors.surface2,
+                            border = androidx.compose.foundation.BorderStroke(1.dp, RoutineTheme.colors.border)
+                        ) {
+                            Row(
+                                modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Text(
+                                    text = "+ Añadir Fecha Límite (Deadline)",
+                                    style = RoutineTheme.typography.labelCaps.copy(fontSize = 10.sp, fontWeight = FontWeight.Bold),
+                                    color = RoutineTheme.colors.primary
+                                )
+                            }
+                        }
+                    } else {
+                        val dateText = java.time.Instant.ofEpochMilli(deadlineMillis!!)
+                            .atZone(java.time.ZoneId.systemDefault())
+                            .toLocalDate()
+                            .toString()
+                        Surface(
+                            shape = RoutineTheme.shapes.pill,
+                            color = RoutineTheme.colors.warning.copy(alpha = 0.15f),
+                            border = androidx.compose.foundation.BorderStroke(1.dp, RoutineTheme.colors.warning.copy(alpha = 0.5f))
+                        ) {
+                            Row(
+                                modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp),
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Text(
+                                    text = "Vence: $dateText",
+                                    style = RoutineTheme.typography.labelCaps.copy(fontSize = 10.sp, fontWeight = FontWeight.Bold),
+                                    color = RoutineTheme.colors.warning
+                                )
+                                Spacer(modifier = Modifier.width(6.dp))
+                                Text(
+                                    text = "✕",
+                                    style = RoutineTheme.typography.labelCaps.copy(fontSize = 10.sp, fontWeight = FontWeight.Bold),
+                                    color = RoutineTheme.colors.warning,
+                                    modifier = Modifier.clickable { deadlineMillis = null }
+                                )
+                            }
+                        }
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(28.dp))
 
                 // PRIMARY ACTION
                 Button(
                     onClick = { 
-                        onConfirm(text, startTimeMinutes, endTimeMinutes) 
+                        val start = when (selectedMode) {
+                            0 -> null // auto now
+                            1 -> startTimeMinutes
+                            else -> null // pendiente
+                        }
+                        val end = when (selectedMode) {
+                            1 -> endTimeMinutes
+                            else -> null
+                        }
+                        onConfirm(text, start, end, deadlineMillis) 
                     },
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(56.dp),
+                        .height(52.dp),
                     shape = RoundedCornerShape(16.dp),
                     colors = ButtonDefaults.buttonColors(
                         containerColor = RoutineTheme.colors.primary,
                         contentColor = Color.Black
                     ),
-                    enabled = text.isNotBlank() && (!isScheduleMode || startTimeMinutes != null)
+                    enabled = text.isNotBlank() && (selectedMode != 1 || startTimeMinutes != null)
                 ) {
                     Text(
-                        "Añadir Actividad",
+                        if (selectedMode == 2) "Guardar Pendiente" else "Crear y Añadir",
                         style = RoutineTheme.typography.bodyBase.copy(
                             fontWeight = FontWeight.Bold,
-                            fontSize = 16.sp
+                            fontSize = 15.sp
                         )
                     )
                 }

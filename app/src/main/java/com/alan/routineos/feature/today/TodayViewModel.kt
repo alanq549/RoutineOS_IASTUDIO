@@ -50,14 +50,16 @@ class TodayViewModel @Inject constructor(
         viewModelScope.launch {
             val nodesFlow = repository.getAllNodes()
             val timelineFlow = getHierarchicalTimelineUseCase(today)
+            val deadlinesFlow = repository.getAllDeadlines()
 
-            combine(nodesFlow, timelineFlow, expandedIds, timeProvider.minuteTicker) { _, entries, expanded, _ ->
+            combine(nodesFlow, timelineFlow, expandedIds, deadlinesFlow, timeProvider.minuteTicker) { _, entries, expanded, deadlines, _ ->
                 currentEntries = entries
                 resolveMetadataForEntries(entries).map { metaMap ->
                     mapToUiState(
                         entries = entries, 
                         metaMap = metaMap, 
                         expanded = expanded, 
+                        deadlines = deadlines,
                         today = today, 
                         dateFormatter = dateFormatter,
                         currentEditing = _uiState.value.editingSpontaneousEntry,
@@ -105,6 +107,7 @@ class TodayViewModel @Inject constructor(
         entries: List<HierarchicalTimelineEntry>,
         metaMap: Map<String, MetadataSnapshot>,
         expanded: Set<String>,
+        deadlines: List<Deadline> = emptyList(),
         today: LocalDate,
         dateFormatter: DateTimeFormatter,
         currentEditing: HierarchicalTimelineEntry? = null,
@@ -136,7 +139,7 @@ class TodayViewModel @Inject constructor(
             val rootTargetId = (entry.root.instance.target as? ScheduleTarget.Node)?.id
             val rootMeta = metaMap[rootTargetId] ?: MetadataSnapshot()
             
-            entry.toUiModel(subNodeModels, rootMeta, expanded.contains(entry.root.instance.id), currentMinutes, nextStartTime, entries)
+            entry.toUiModel(subNodeModels, rootMeta, expanded.contains(entry.root.instance.id), currentMinutes, nextStartTime, entries, deadlines)
         }
 
         // Interception Grouping Logic (Elevated: check if root or ANY subnode is being interrupted)
@@ -285,7 +288,8 @@ class TodayViewModel @Inject constructor(
         isExpanded: Boolean,
         currentMinutes: Int,
         inferredEndTime: Int?,
-        allEntries: List<HierarchicalTimelineEntry>
+        allEntries: List<HierarchicalTimelineEntry>,
+        deadlines: List<Deadline> = emptyList()
     ): TodayTimelineUiModel {
         val start = root.instance.plannedStartTime ?: effectiveStartTimeMinutes
         val duration = totalDurationMinutes
@@ -312,6 +316,13 @@ class TodayViewModel @Inject constructor(
             else -> TimelineTemporalState.UPCOMING
         }
 
+        val matchedDeadline = deadlines.find { 
+            it.instanceId == root.instance.id || 
+            (root.instance.backlogId != null && it.backlogId == root.instance.backlogId) ||
+            ((root.instance.target as? ScheduleTarget.Definition)?.id != null && it.definitionId == (root.instance.target as? ScheduleTarget.Definition)?.id)
+        }
+        val deadlineUi = matchedDeadline?.let { formatDeadlineText(it.dueAt) }
+
         return TodayTimelineUiModel(
             id = root.instance.id,
             title = root.instance.titleSnapshot,
@@ -333,6 +344,8 @@ class TodayViewModel @Inject constructor(
             temporalState = temporalState,
             completion = completion,
             actionProtocol = root.instance.actionProtocol,
+            deadline = deadlineUi,
+            isExternalCalendar = root.instance.descriptionSnapshot.contains("Calendario", ignoreCase = true) || root.instance.descriptionSnapshot.contains("Calendar", ignoreCase = true),
             itemType = when (root.instance.role) {
                 DailyInstanceRole.ACTIVITY -> PlanningItemType.ACTIVITY
                 DailyInstanceRole.REMINDER -> PlanningItemType.REMINDER
@@ -536,29 +549,41 @@ class TodayViewModel @Inject constructor(
         title: String,
         startTime: Int? = null,
         parentInstanceId: String? = null,
-        endTime: Int? = null
+        endTime: Int? = null,
+        deadlineEpochMilli: Long? = null
     ) {
         val today = LocalDate.now()
+        val isTask = (startTime == null && endTime == null)
         val minutes = startTime ?: (LocalTime.now().hour * 60 + LocalTime.now().minute)
         val duration = if (startTime != null && endTime != null) endTime - startTime else null
+        val newId = UUID.randomUUID().toString()
         
         val adHocInstance = DailyInstance(
-            id = UUID.randomUUID().toString(),
+            id = newId,
             target = null,
             scheduledDate = today.toEpochDay(),
             titleSnapshot = title,
-            descriptionSnapshot = "Ad-hoc task",
-            plannedStartTime = if (startTime == null && endTime == null) null else minutes,
+            descriptionSnapshot = "",
+            plannedStartTime = if (isTask) null else minutes,
             plannedEndTime = endTime,
             plannedDurationMinutes = duration,
             status = DailyInstanceStatus.MODIFIED,
             isAdHoc = true,
             parentInstanceId = parentInstanceId,
-            actionProtocol = ActionProtocol.TIMER,
-            role = DailyInstanceRole.ACTIVITY
+            actionProtocol = if (isTask) ActionProtocol.CHECK else ActionProtocol.TIMER,
+            role = if (isTask) DailyInstanceRole.TASK else DailyInstanceRole.ACTIVITY
         )
         viewModelScope.launch {
             repository.upsertDailyInstance(adHocInstance)
+            if (deadlineEpochMilli != null) {
+                repository.upsertDeadline(
+                    Deadline(
+                        id = UUID.randomUUID().toString(),
+                        dueAt = deadlineEpochMilli,
+                        instanceId = newId
+                    )
+                )
+            }
             _uiEvent.emit(ActivityDetailUiEvent.SchedulingUpsertSuccess("Actividad añadida"))
         }
     }

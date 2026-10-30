@@ -41,7 +41,7 @@ fun MonthlyCycleView(
         // Range & Summary
         Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.fillMaxWidth()) {
             Text(
-                text = monthStats.yearMonth.month.getDisplayName(java.time.format.TextStyle.FULL, Locale.getDefault()).uppercase(),
+                text = monthStats.yearMonth.month.getDisplayName(java.time.format.TextStyle.FULL, Locale("es", "ES")).uppercase(),
                 style = RoutineTheme.typography.headlineMedium, 
                 color = RoutineTheme.colors.onSurface
             )

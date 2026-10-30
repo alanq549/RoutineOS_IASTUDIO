@@ -31,6 +31,8 @@ import com.alan.routineos.core.designsystem.component.RoutineDropdownMenu
 import com.alan.routineos.core.designsystem.component.RoutineDropdownMenuItem
 import com.alan.routineos.core.designsystem.theme.RoutineTheme
 import com.alan.routineos.domain.model.DailyInstanceStatus
+import com.alan.routineos.feature.today.components.DeadlineBadge
+import com.alan.routineos.feature.today.components.ExternalCalendarBadge
 import com.alan.routineos.feature.today.components.drawThreadLine
 import com.alan.routineos.feature.today.model.*
 import com.alan.routineos.feature.planning.PlanningAccents
@@ -114,7 +116,7 @@ private fun TimelineReminderBlock(
         ) {
             Text(
                 text = item.startTimeMinutes?.let { formatMinutes(it) } ?: "",
-                style = RoutineTheme.typography.dataLarge.copy(fontSize = 11.sp, fontWeight = FontWeight.Bold),
+                style = RoutineTheme.typography.dataLarge.copy(fontSize = 13.sp, fontWeight = FontWeight.Bold),
                 color = if (isOmitted) RoutineTheme.colors.onSurfaceVariant.copy(alpha = 0.4f) else amberAccent
             )
             Spacer(modifier = Modifier.height(6.dp))
@@ -167,6 +169,19 @@ private fun FullActivityBlock(
     val isModified = item.status == DailyInstanceStatus.MODIFIED
     val semanticColor = RoutineTheme.colors.roleEvent
 
+    val durationMinutes = if (item.startTimeMinutes != null && item.endTimeMinutes != null) {
+        item.endTimeMinutes - item.startTimeMinutes
+    } else null
+    val durationText = durationMinutes?.let { mins ->
+        val h = mins / 60
+        val m = mins % 60
+        when {
+            h > 0 && m > 0 -> "$h h $m min"
+            h > 0 -> "$h h"
+            else -> "$m min"
+        }
+    }
+
     Row(
         modifier = Modifier.fillMaxWidth().padding(vertical = 14.dp),
         verticalAlignment = Alignment.Top
@@ -178,7 +193,7 @@ private fun FullActivityBlock(
         ) {
             Text(
                 text = item.timeRangeText,
-                style = RoutineTheme.typography.dataLarge.copy(fontSize = 11.sp, fontWeight = FontWeight.Bold),
+                style = RoutineTheme.typography.dataLarge.copy(fontSize = 13.sp, fontWeight = FontWeight.Bold),
                 color = if (isOmitted) RoutineTheme.colors.onSurfaceVariant.copy(alpha = 0.4f) else semanticColor
             )
             
@@ -228,7 +243,7 @@ private fun FullActivityBlock(
         // ACTIVITY CARD (Stitch Fidelity 1:1)
         RoutineCard(
             modifier = Modifier.weight(1f).alpha(if (isOmitted) 0.6f else 1f),
-            containerColor = Color(0xFF121A24),
+            containerColor = RoutineTheme.colors.surface1,
             border = androidx.compose.foundation.BorderStroke(
                 width = 1.dp,
                 color = if (isOmitted) RoutineTheme.colors.border else semanticColor.copy(alpha = 0.3f)
@@ -295,6 +310,29 @@ private fun FullActivityBlock(
                             color = Color.White
                         )
 
+                        if (durationText != null) {
+                            Spacer(modifier = Modifier.height(2.dp))
+                            Text(
+                                text = "Duración planificada: $durationText",
+                                style = RoutineTheme.typography.labelCaps.copy(fontSize = 11.sp, color = semanticColor.copy(alpha = 0.9f), fontWeight = FontWeight.Bold)
+                            )
+                        }
+
+                        if (item.deadline != null || item.isExternalCalendar) {
+                            Spacer(modifier = Modifier.height(6.dp))
+                            Row(
+                                horizontalArrangement = Arrangement.spacedBy(6.dp),
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                if (item.isExternalCalendar) {
+                                    ExternalCalendarBadge()
+                                }
+                                item.deadline?.let { dl ->
+                                    DeadlineBadge(deadline = dl)
+                                }
+                            }
+                        }
+
                         // Hierarchy Expansion (Indented with Line)
                         AnimatedVisibility(visible = item.isExpanded) {
                             if (item.subNodes.isNotEmpty()) {
@@ -309,7 +347,7 @@ private fun FullActivityBlock(
                         }
                     }
 
-                    // STITCH BOTTOM STATUS BAR
+                    // PLANNING BOTTOM STATUS BAR
                     Box(modifier = Modifier.fillMaxWidth().height(1.dp).background(PlanningAccents.SpineMedium.copy(alpha = 0.6f)))
                     Row(
                         modifier = Modifier.fillMaxWidth().padding(horizontal = 14.dp, vertical = 10.dp),
@@ -317,17 +355,24 @@ private fun FullActivityBlock(
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Row(verticalAlignment = Alignment.CenterVertically) {
-                            Box(modifier = Modifier.size(4.dp).background(RoutineTheme.colors.onSurfaceVariant.copy(alpha = 0.5f), CircleShape))
+                            Box(modifier = Modifier.size(4.dp).background(semanticColor.copy(alpha = 0.7f), CircleShape))
                             Spacer(modifier = Modifier.width(8.dp))
                             Text(
-                                text = "${item.totalSubNodesCount} hábitos encadenados",
+                                text = if (item.totalSubNodesCount > 0) "${item.totalSubNodesCount} pasos desglosados" else "Bloque de actividad",
                                 style = RoutineTheme.typography.labelCaps.copy(fontSize = 9.sp, color = RoutineTheme.colors.onSurfaceVariant.copy(alpha = 0.7f), fontWeight = FontWeight.Medium)
                             )
                         }
-                        Text(
-                            text = "0% completado hoy",
-                            style = RoutineTheme.typography.labelCaps.copy(fontSize = 9.sp, color = RoutineTheme.colors.onSurfaceVariant.copy(alpha = 0.5f))
-                        )
+                        if (durationText != null) {
+                            Text(
+                                text = durationText,
+                                style = RoutineTheme.typography.labelCaps.copy(fontSize = 10.sp, color = semanticColor, fontWeight = FontWeight.Bold)
+                            )
+                        } else {
+                            Text(
+                                text = "Tocar para organizar",
+                                style = RoutineTheme.typography.labelCaps.copy(fontSize = 9.sp, color = RoutineTheme.colors.onSurfaceVariant.copy(alpha = 0.5f))
+                            )
+                        }
                     }
                 }
             }
@@ -355,7 +400,7 @@ private fun CompactTaskBlock(
         ) {
             Text(
                 text = item.startTimeMinutes?.let { formatMinutes(it) } ?: "",
-                style = RoutineTheme.typography.dataLarge.copy(fontSize = 11.sp, fontWeight = FontWeight.Bold),
+                style = RoutineTheme.typography.dataLarge.copy(fontSize = 13.sp, fontWeight = FontWeight.Bold),
                 color = if (isOmitted) RoutineTheme.colors.onSurfaceVariant.copy(alpha = 0.4f) else indigoAccent
             )
             Spacer(modifier = Modifier.height(6.dp))
@@ -396,7 +441,7 @@ private fun CompactTaskBlock(
         // TASK CARD (Stitch Indigo)
         RoutineCard(
             modifier = Modifier.weight(1f).alpha(if (isOmitted) 0.7f else 1f),
-            containerColor = Color(0xFF121620),
+            containerColor = RoutineTheme.colors.surface1,
             border = androidx.compose.foundation.BorderStroke(
                 width = 1.dp,
                 color = if (isOmitted) RoutineTheme.colors.border else indigoAccent.copy(alpha = 0.25f)
@@ -406,15 +451,15 @@ private fun CompactTaskBlock(
                 modifier = Modifier.padding(horizontal = 14.dp, vertical = 14.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                // Stitch Checkbox Area (Rounded Square)
+                // Planning Schedule Icon (Not a checkbox in planning view)
                 Box(
                     modifier = Modifier
                         .size(24.dp)
-                        .border(1.5.dp, indigoAccent.copy(alpha = 0.5f), RoundedCornerShape(6.dp))
+                        .border(1.dp, indigoAccent.copy(alpha = 0.4f), RoundedCornerShape(6.dp))
                         .background(indigoAccent.copy(alpha = 0.08f), RoundedCornerShape(6.dp)),
                     contentAlignment = Alignment.Center
                 ) {
-                    Icon(Icons.Default.Check, null, modifier = Modifier.size(16.dp), tint = indigoAccent)
+                    Icon(Icons.Default.Schedule, null, modifier = Modifier.size(13.dp), tint = indigoAccent)
                 }
                 
                 Spacer(modifier = Modifier.width(14.dp))
@@ -427,10 +472,28 @@ private fun CompactTaskBlock(
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis
                     )
-                    Text(
-                        text = "Puntual de hoy",
-                        style = RoutineTheme.typography.labelCaps.copy(fontSize = 10.sp, color = indigoAccent, fontWeight = FontWeight.SemiBold)
-                    )
+                    Row(
+                        horizontalArrangement = Arrangement.spacedBy(6.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        val taskTimeInfo = if (item.startTimeMinutes != null) {
+                            val durationMins = if (item.endTimeMinutes != null) item.endTimeMinutes - item.startTimeMinutes else null
+                            if (durationMins != null && durationMins > 0) "Programada · $durationMins min"
+                            else "Programada ${formatMinutes(item.startTimeMinutes)}"
+                        } else {
+                            "Sin hora fijada"
+                        }
+                        Text(
+                            text = "Tarea · $taskTimeInfo",
+                            style = RoutineTheme.typography.labelCaps.copy(fontSize = 10.sp, color = indigoAccent, fontWeight = FontWeight.SemiBold)
+                        )
+                        if (item.isExternalCalendar) {
+                            ExternalCalendarBadge()
+                        }
+                        item.deadline?.let { dl ->
+                            DeadlineBadge(deadline = dl)
+                        }
+                    }
                     
                     // Note inside Task (Specialized Compact UI)
                     item.context?.note?.let { note ->

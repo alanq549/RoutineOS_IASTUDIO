@@ -29,8 +29,6 @@ import com.alan.routineos.core.designsystem.component.RoutineScaffold
 import com.alan.routineos.core.designsystem.component.RoutineTopBar
 import com.alan.routineos.core.designsystem.theme.RoutineTheme
 
-private val DarkSurface = Color(0xFF0D1017)
-
 @Composable
 fun ActivityCreationRoute(
     onBack: () -> Unit,
@@ -77,7 +75,7 @@ fun ActivityCreationScreen(
             
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Text(
-                    text = "CONFIGURACIÓN DE ACTIVIDAD",
+                    text = "NUEVA ACTIVIDAD HABITUAL",
                     style = RoutineTheme.typography.labelCaps.copy(
                         letterSpacing = 2.sp,
                         fontWeight = FontWeight.Black,
@@ -146,7 +144,7 @@ fun ActivityFormFields(
                 )
                 Spacer(modifier = Modifier.width(8.dp))
                 Text(
-                    text = "SISTEMA",
+                    text = "ÁREA O CATEGORÍA",
                     style = RoutineTheme.typography.labelCaps.copy(fontSize = 11.sp, letterSpacing = 1.sp),
                     color = Color.White
                 )
@@ -204,7 +202,7 @@ fun ActivityFormFields(
                 modifier = Modifier
                     .fillMaxWidth()
                     .clip(RoundedCornerShape(12.dp))
-                    .background(DarkSurface)
+                    .background(RoutineTheme.colors.surface1)
                     .border(1.dp, RoutineTheme.colors.border.copy(alpha = 0.15f), RoundedCornerShape(12.dp)),
                 singleLine = true,
                 enabled = enabled,
@@ -240,7 +238,7 @@ fun ActivityFormFields(
                 modifier = Modifier
                     .fillMaxWidth()
                     .clip(RoundedCornerShape(12.dp))
-                    .background(DarkSurface)
+                    .background(RoutineTheme.colors.surface1)
                     .border(1.dp, RoutineTheme.colors.border.copy(alpha = 0.15f), RoundedCornerShape(12.dp)),
                 minLines = 3,
                 enabled = enabled,

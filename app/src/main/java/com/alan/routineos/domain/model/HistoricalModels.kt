@@ -25,8 +25,12 @@ data class HistorySnapshot(
     val missedCount: Int,
     val omittedCount: Int,
     val executionConsistency: Float?, // Days with >= 70% completion
-    val startDeviationAvgMinutes: Int? = null, // N/A for now
-    val durationDeviationAvgMinutes: Int? = null, // N/A for now
+    val startDeviationAvgMinutes: Int? = null,
+    val durationDeviationAvgMinutes: Int? = null,
+    val plannedHours: Float? = null,
+    val executedHours: Float? = null,
+    val deadlinesTotal: Int = 0,
+    val deadlinesMet: Int = 0,
     val systemAdherence: List<SystemAdherence> = emptyList(),
     val activityAdherence: List<ActivityAdherence> = emptyList(),
     val dailyStats: List<DailyStats> = emptyList(),

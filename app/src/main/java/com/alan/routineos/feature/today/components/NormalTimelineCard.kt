@@ -215,6 +215,14 @@ private fun FullActivityCard(
                         Text("ATRASADA", style = RoutineTheme.typography.labelCaps.copy(fontSize = 9.sp, fontWeight = FontWeight.Bold), color = overdueColor)
                     }
 
+                    if (item.deadline != null) {
+                        DeadlineBadge(item.deadline)
+                    }
+
+                    if (item.isExternalCalendar) {
+                        ExternalCalendarBadge()
+                    }
+
                     if (item.conflict.hasConflict && !isCompleted && !isInterrupter && impactColor == RoutineTheme.colors.secondary) {
                         RelationshipBadge(
                             text = getRelationLabel(item.conflict.details.first()),
@@ -364,6 +372,16 @@ private fun CompactTaskCard(
                     color = if (isCompleted) RoutineTheme.colors.onSurfaceVariant else RoutineTheme.colors.onSurface
                 )
 
+                if (item.deadline != null) {
+                    Spacer(modifier = Modifier.height(4.dp))
+                    DeadlineBadge(item.deadline)
+                }
+
+                if (item.isExternalCalendar) {
+                    Spacer(modifier = Modifier.height(4.dp))
+                    ExternalCalendarBadge()
+                }
+
                 // Note inside Task (Specialized Compact UI)
                 item.context?.note?.let { note ->
                     Spacer(modifier = Modifier.height(4.dp))
@@ -403,61 +421,109 @@ private fun LightweightReminderCard(
     onAction: (String, String) -> Unit,
     modifier: Modifier = Modifier
 ) {
+    val isCompleted = item.status == DailyInstanceStatus.COMPLETED
     val isOmitted = item.status == DailyInstanceStatus.OMITTED
     val amberAccent = RoutineTheme.colors.roleReminder
 
     Surface(
         modifier = modifier
             .fillMaxWidth()
-            .alpha(if (isOmitted) 0.65f else 1f)
-            .clickable { onAction(item.id, "EDIT_SPONTANEOUS") },
+            .alpha(if (isOmitted) 0.65f else 1f),
         color = RoutineTheme.colors.surface2,
         shape = RoutineTheme.shapes.small,
         border = BorderStroke(1.dp, if (isOmitted) RoutineTheme.colors.border else amberAccent.copy(alpha = 0.25f))
     ) {
-        Row(
-            modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Box(
-                modifier = Modifier
-                    .size(28.dp)
-                    .background(amberAccent.copy(alpha = 0.12f), RoundedCornerShape(6.dp))
-                    .border(1.dp, amberAccent.copy(alpha = 0.25f), RoundedCornerShape(6.dp)),
-                contentAlignment = Alignment.Center
+        Column(modifier = Modifier.padding(horizontal = 12.dp, vertical = 10.dp)) {
+            Row(
+                verticalAlignment = Alignment.CenterVertically
             ) {
-                Icon(Icons.Default.Notifications, null, tint = amberAccent, modifier = Modifier.size(14.dp))
-            }
-            Spacer(modifier = Modifier.width(10.dp))
-            Column(modifier = Modifier.weight(1f)) {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Surface(
-                        color = amberAccent.copy(alpha = 0.15f),
-                        shape = RoundedCornerShape(4.dp)
-                    ) {
-                        Text(
-                            "RECORDATORIO",
-                            style = RoutineTheme.typography.labelCaps.copy(fontSize = 8.sp, color = amberAccent, fontWeight = FontWeight.Black),
-                            modifier = Modifier.padding(horizontal = 5.dp, vertical = 1.dp)
-                        )
+                Box(
+                    modifier = Modifier
+                        .size(28.dp)
+                        .background(amberAccent.copy(alpha = 0.12f), RoundedCornerShape(6.dp))
+                        .border(1.dp, amberAccent.copy(alpha = 0.25f), RoundedCornerShape(6.dp)),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Icon(Icons.Default.Notifications, null, tint = amberAccent, modifier = Modifier.size(14.dp))
+                }
+                Spacer(modifier = Modifier.width(10.dp))
+                Column(modifier = Modifier.weight(1f)) {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Surface(
+                            color = amberAccent.copy(alpha = 0.15f),
+                            shape = RoundedCornerShape(4.dp)
+                        ) {
+                            Text(
+                                "RECORDATORIO",
+                                style = RoutineTheme.typography.labelCaps.copy(fontSize = 8.sp, color = amberAccent, fontWeight = FontWeight.Black),
+                                modifier = Modifier.padding(horizontal = 5.dp, vertical = 1.dp)
+                            )
+                        }
+                        if (item.timeRangeText.isNotBlank()) {
+                            Spacer(modifier = Modifier.width(8.dp))
+                            Text(
+                                text = item.timeRangeText,
+                                style = RoutineTheme.typography.labelCaps.copy(fontSize = 9.sp, fontWeight = FontWeight.Bold),
+                                color = amberAccent
+                            )
+                        }
                     }
-                    if (item.timeRangeText.isNotBlank()) {
-                        Spacer(modifier = Modifier.width(8.dp))
-                        Text(
-                            text = item.timeRangeText,
-                            style = RoutineTheme.typography.labelCaps.copy(fontSize = 8.sp),
-                            color = RoutineTheme.colors.onSurfaceVariant.copy(alpha = 0.6f)
-                        )
+                    Spacer(modifier = Modifier.height(2.dp))
+                    Text(
+                        text = item.title,
+                        style = RoutineTheme.typography.bodyBase.copy(
+                            fontSize = 14.sp, 
+                            fontWeight = FontWeight.Bold,
+                            textDecoration = if (isCompleted || isOmitted) TextDecoration.LineThrough else null
+                        ),
+                        color = if (isOmitted) RoutineTheme.colors.onSurfaceVariant else RoutineTheme.colors.onSurface
+                    )
+                }
+                ActionMenu(item, isCompleted, isOmitted) { id, action -> onAction(id, action) }
+            }
+
+            // Direct actions: [ Confirmar ] [ +15 min ] [ Omitir ]
+            if (!isCompleted && !isOmitted) {
+                Spacer(modifier = Modifier.height(8.dp))
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Button(
+                        onClick = { onAction(item.id, "COMPLETE") },
+                        colors = ButtonDefaults.buttonColors(containerColor = amberAccent),
+                        contentPadding = PaddingValues(horizontal = 12.dp, vertical = 4.dp),
+                        modifier = Modifier.height(30.dp),
+                        shape = RoutineTheme.shapes.small
+                    ) {
+                        Icon(Icons.Default.Check, null, modifier = Modifier.size(13.dp), tint = Color(0xFF1E1500))
+                        Spacer(modifier = Modifier.width(4.dp))
+                        Text("Confirmar", style = RoutineTheme.typography.labelCaps.copy(fontSize = 10.sp, fontWeight = FontWeight.Bold), color = Color(0xFF1E1500))
+                    }
+                    OutlinedButton(
+                        onClick = { 
+                            val currentMin = item.startTimeMinutes ?: (java.time.LocalTime.now().hour * 60 + java.time.LocalTime.now().minute)
+                            onAction(item.id, "MOVE_TO:${currentMin + 15}") 
+                        },
+                        contentPadding = PaddingValues(horizontal = 10.dp, vertical = 4.dp),
+                        modifier = Modifier.height(30.dp),
+                        shape = RoutineTheme.shapes.small,
+                        border = BorderStroke(1.dp, RoutineTheme.colors.border)
+                    ) {
+                        Text("+15 min", style = RoutineTheme.typography.labelCaps.copy(fontSize = 10.sp), color = RoutineTheme.colors.onSurface)
+                    }
+                    OutlinedButton(
+                        onClick = { onAction(item.id, "SKIP") },
+                        contentPadding = PaddingValues(horizontal = 10.dp, vertical = 4.dp),
+                        modifier = Modifier.height(30.dp),
+                        shape = RoutineTheme.shapes.small,
+                        border = BorderStroke(1.dp, RoutineTheme.colors.border.copy(alpha = 0.5f))
+                    ) {
+                        Text("Omitir", style = RoutineTheme.typography.labelCaps.copy(fontSize = 10.sp), color = RoutineTheme.colors.onSurfaceVariant)
                     }
                 }
-                Spacer(modifier = Modifier.height(2.dp))
-                Text(
-                    text = item.title,
-                    style = RoutineTheme.typography.bodyBase.copy(fontSize = 13.sp, fontWeight = FontWeight.Bold),
-                    color = RoutineTheme.colors.onSurface
-                )
             }
-            ActionMenu(item, false, isOmitted) { id, action -> onAction(id, action) }
         }
     }
 }
@@ -739,3 +805,67 @@ private fun MinimalSpontaneousRow(
         }
     }
 }
+
+@Composable
+fun DeadlineBadge(deadline: DeadlineUiModel, modifier: Modifier = Modifier) {
+    val bgColor = if (deadline.isOverdue) RoutineTheme.colors.error.copy(alpha = 0.15f)
+                  else if (deadline.isDueToday) RoutineTheme.colors.warning.copy(alpha = 0.15f)
+                  else RoutineTheme.colors.surface2
+    val contentColor = if (deadline.isOverdue) RoutineTheme.colors.error
+                       else if (deadline.isDueToday) RoutineTheme.colors.warning
+                       else RoutineTheme.colors.primary
+
+    Surface(
+        color = bgColor,
+        shape = RoutineTheme.shapes.pill,
+        border = BorderStroke(1.dp, contentColor.copy(alpha = 0.35f)),
+        modifier = modifier
+    ) {
+        Row(
+            modifier = Modifier.padding(horizontal = 8.dp, vertical = 2.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Icon(
+                imageVector = Icons.Default.HourglassTop,
+                contentDescription = null,
+                tint = contentColor,
+                modifier = Modifier.size(11.dp)
+            )
+            Spacer(modifier = Modifier.width(4.dp))
+            Text(
+                text = deadline.displayText,
+                style = RoutineTheme.typography.labelCaps.copy(fontSize = 10.sp, fontWeight = FontWeight.Bold),
+                color = contentColor
+            )
+        }
+    }
+}
+
+@Composable
+fun ExternalCalendarBadge(modifier: Modifier = Modifier) {
+    Surface(
+        color = RoutineTheme.colors.secondary.copy(alpha = 0.12f),
+        shape = RoutineTheme.shapes.pill,
+        border = BorderStroke(1.dp, RoutineTheme.colors.secondary.copy(alpha = 0.35f)),
+        modifier = modifier
+    ) {
+        Row(
+            modifier = Modifier.padding(horizontal = 8.dp, vertical = 2.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Icon(
+                imageVector = Icons.Default.CalendarMonth,
+                contentDescription = null,
+                tint = RoutineTheme.colors.secondary,
+                modifier = Modifier.size(11.dp)
+            )
+            Spacer(modifier = Modifier.width(4.dp))
+            Text(
+                text = "Calendario Externo (Ocupado)",
+                style = RoutineTheme.typography.labelCaps.copy(fontSize = 10.sp, fontWeight = FontWeight.Bold),
+                color = RoutineTheme.colors.secondary
+            )
+        }
+    }
+}
+

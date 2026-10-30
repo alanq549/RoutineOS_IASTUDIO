@@ -7,6 +7,7 @@ import androidx.compose.ui.unit.dp
 
 @Immutable
 data class RoutineDimensions(
+    val iconXs: Dp = 16.dp,
     val iconSmall: Dp = 20.dp,
     val iconMedium: Dp = 24.dp,
     val iconLarge: Dp = 32.dp,

@@ -415,4 +415,21 @@ class OfflineActivityRepository @Inject constructor(
             backlogItemDao.deleteBacklogItem(entity)
         }
     }
+
+    override fun getAllDeadlines(): Flow<List<Deadline>> {
+        return deadlineDao.getAllDeadlines().map { entities ->
+            entities.map { it.toDomain() }
+        }
+    }
+
+    override suspend fun upsertDeadline(deadline: Deadline) {
+        deadlineDao.upsertDeadline(deadline.toEntity())
+    }
+
+    override suspend fun deleteDeadline(id: String) {
+        val entity = deadlineDao.getAllDeadlines().firstOrNull()?.find { it.id == id }
+        if (entity != null) {
+            deadlineDao.deleteDeadline(entity)
+        }
+    }
 }

@@ -1,0 +1,6 @@
+{
+  "summary":  "Documento de Rediseño Integral de Producto y Experiencia de Usuario (UI/UX) para RoutineOS. Define la nueva arquitectura de navegación (Today, Planning, Stats), la eliminación de pantallas redundantes, los flujos unificados de tareas, recordatorios y pendientes, la política de alarmas y calendarios externos, la dirección visual con reglas de color semántico, los wireframes textuales y la estrategia de extensibilidad modular (Gym Tracking y Finanzas) sin sobreingeniería.",
+  "updatedAt":  "2026-10-27T19:39:33.225597317Z",
+  "requestFeedback":  true,
+  "userFacing":  true
+}

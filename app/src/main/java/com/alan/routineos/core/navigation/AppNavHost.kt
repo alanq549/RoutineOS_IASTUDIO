@@ -24,7 +24,10 @@ fun AppNavHost(
         modifier = modifier
     ) {
         composable(AppRoutes.Today.route) {
-            TodayRoute(bottomBar = bottomBar)
+            TodayRoute(
+                bottomBar = bottomBar,
+                onNavigateToAccount = { navController.navigate(AppRoutes.Account.route) }
+            )
         }
 
         composable(AppRoutes.Planning.route) {
@@ -35,15 +38,22 @@ fun AppNavHost(
                 },
                 onActivityClick = { activityId ->
                     navController.navigate(AppRoutes.ActivityDetail.createRoute(activityId))
-                }
+                },
+                onNavigateToAccount = { navController.navigate(AppRoutes.Account.route) }
             )
         }
 
         composable(AppRoutes.Stats.route) {
-            StatsRoute(bottomBar = bottomBar)
+            StatsRoute(
+                bottomBar = bottomBar,
+                onNavigateToAccount = { navController.navigate(AppRoutes.Account.route) }
+            )
         }
         composable(AppRoutes.Account.route) {
-            AccountRoute(bottomBar = bottomBar)
+            AccountRoute(
+                bottomBar = bottomBar,
+                onBack = { navController.popBackStack() }
+            )
         }
 
         composable(AppRoutes.ActivityCreation.route) {

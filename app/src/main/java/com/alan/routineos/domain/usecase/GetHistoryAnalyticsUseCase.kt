@@ -5,6 +5,7 @@ import com.alan.routineos.domain.repository.ActivityRepository
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.serialization.json.*
 import java.time.LocalDate
 import java.time.YearMonth
@@ -25,13 +26,18 @@ class GetHistoryAnalyticsUseCase @Inject constructor(
         return combine(
             repository.getAllExecutions(),
             repository.getDailyInstancesForDateRange(start.toEpochDay(), end.toEpochDay()),
-            repository.getAllRules()
-        ) { _, _, _ ->
-            execute(start, end)
+            repository.getAllRules(),
+            repository.getAllDeadlines()
+        ) { _, _, _, deadlines ->
+            execute(start, end, deadlines)
         }
     }
 
-    suspend fun execute(start: LocalDate, end: LocalDate): HistorySnapshot {
+    suspend fun execute(
+        start: LocalDate,
+        end: LocalDate,
+        deadlines: List<Deadline>? = null
+    ): HistorySnapshot {
         val resolvedOccs = occurrenceResolver.resolveRange(start, end)
         val allNodes = repository.getAllNodes().first()
         val allDefinitions = repository.getActivityDefinitions().first()
@@ -213,6 +219,24 @@ class GetHistoryAnalyticsUseCase @Inject constructor(
         val consistentDays = dailyStatsList.count { it.completionRate != null && it.completionRate >= 0.7f }
         val consistencyScore = if (dailyStatsList.isNotEmpty()) consistentDays.toFloat() / dailyStatsList.size else null
 
+        val totalPlannedMinutes = metricOccurrences.filter { it.instance.status != DailyInstanceStatus.OMITTED }
+            .sumOf { it.instance.plannedDurationMinutes ?: 45 }
+        val plannedHours = if (totalPlannedMinutes > 0) totalPlannedMinutes / 60f else null
+
+        val executedMinutes = metricOccurrences.filter { it.execution != null }
+            .sumOf { it.instance.plannedDurationMinutes ?: 45 }
+        val executedHours = if (completedCount > 0) executedMinutes / 60f else null
+
+        val allDeadlines = deadlines ?: (repository.getAllDeadlines().firstOrNull() ?: emptyList())
+        val startMilli = start.atStartOfDay(java.time.ZoneId.systemDefault()).toInstant().toEpochMilli()
+        val endMilli = end.plusDays(1).atStartOfDay(java.time.ZoneId.systemDefault()).toInstant().toEpochMilli()
+        val rangeDeadlines = allDeadlines.filter { it.dueAt in startMilli until endMilli }
+        val deadlinesTotal = rangeDeadlines.size
+        val completedInstanceIds = metricOccurrences.filter { it.execution != null }.map { it.instance.id }.toSet()
+        val deadlinesMet = rangeDeadlines.count { deadline ->
+            deadline.instanceId != null && completedInstanceIds.contains(deadline.instanceId)
+        }
+
         return HistorySnapshot(
             completionRate = completionRate,
             totalOccurrences = totalOccurrences,
@@ -220,6 +244,10 @@ class GetHistoryAnalyticsUseCase @Inject constructor(
             missedCount = missedCount,
             omittedCount = omittedCount,
             executionConsistency = consistencyScore,
+            plannedHours = plannedHours,
+            executedHours = executedHours,
+            deadlinesTotal = deadlinesTotal,
+            deadlinesMet = deadlinesMet,
             systemAdherence = systemAdherence,
             activityAdherence = activityAdherence,
             dailyStats = dailyStatsList,

@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -57,25 +58,21 @@ private fun FloatingItemCard(
     Box(
         modifier = modifier
             .fillMaxWidth()
-            .clip(RoundedCornerShape(12.dp))
-            .background(
-                Brush.horizontalGradient(
-                    colors = listOf(Color(0xFF111721), Color(0xFF161F2C))
-                )
-            )
-            .border(1.dp, RoutineTheme.colors.border.copy(alpha = 0.5f), RoundedCornerShape(12.dp))
+            .clip(RoutineTheme.shapes.medium)
+            .background(RoutineTheme.colors.surface1)
+            .border(1.dp, semanticColor.copy(alpha = 0.25f), RoutineTheme.shapes.medium)
             .clickable { onAction(item.id, "EDIT_SPONTANEOUS") }
-            .padding(horizontal = 12.dp, vertical = 8.dp)
+            .padding(horizontal = 14.dp, vertical = 12.dp)
     ) {
         Row(verticalAlignment = Alignment.CenterVertically) {
             Box(
                 modifier = Modifier
-                    .size(32.dp)
-                    .background(semanticColor.copy(alpha = 0.1f), RoundedCornerShape(8.dp))
-                    .border(1.dp, semanticColor.copy(alpha = 0.2f), RoundedCornerShape(8.dp)),
+                    .size(36.dp)
+                    .background(semanticColor.copy(alpha = 0.1f), RoutineTheme.shapes.small)
+                    .border(1.dp, semanticColor.copy(alpha = 0.2f), RoutineTheme.shapes.small),
                 contentAlignment = Alignment.Center
             ) {
-                Icon(icon, null, modifier = Modifier.size(16.dp), tint = semanticColor)
+                Icon(icon, null, modifier = Modifier.size(18.dp), tint = semanticColor)
             }
 
             Spacer(modifier = Modifier.width(12.dp))
@@ -84,26 +81,27 @@ private fun FloatingItemCard(
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Surface(
                         color = semanticColor.copy(alpha = 0.15f),
-                        shape = RoundedCornerShape(4.dp)
+                        shape = RoutineTheme.shapes.small
                     ) {
                         Text(
                             badgeText,
                             style = RoutineTheme.typography.labelCaps.copy(
-                                fontSize = 8.sp,
+                                fontSize = 9.sp,
                                 color = semanticColor,
-                                fontWeight = FontWeight.Black
+                                fontWeight = FontWeight.Bold
                             ),
-                            modifier = Modifier.padding(horizontal = 5.dp, vertical = 1.dp)
+                            modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
                         )
                     }
                 }
+                Spacer(modifier = Modifier.height(2.dp))
                 Text(
                     text = item.title,
                     style = RoutineTheme.typography.bodyBase.copy(
-                        fontSize = 14.sp,
-                        fontWeight = FontWeight.Bold
+                        fontSize = 15.sp,
+                        fontWeight = FontWeight.SemiBold
                     ),
-                    color = Color.White
+                    color = RoutineTheme.colors.onSurface
                 )
             }
             ActionMenu(item, isOmitted, isModified) { onAction(item.id, it) }

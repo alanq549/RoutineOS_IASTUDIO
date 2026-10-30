@@ -8,6 +8,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 @Composable
 fun TodayRoute(
     viewModel: TodayViewModel = hiltViewModel(),
+    onNavigateToAccount: () -> Unit = {},
     bottomBar: @Composable () -> Unit = {}
 ) {
     val uiState by viewModel.uiState.collectAsState()
@@ -18,7 +19,7 @@ fun TodayRoute(
         onExpandClick = viewModel::toggleExpand,
         onMetadataCaptured = viewModel::onMetadataCaptured,
         onCloseCapture = viewModel::onCloseCapture,
-        onAddAdHoc = { title, start, end -> viewModel.onAddAdHoc(title, start, null, end) },
+        onAddAdHoc = { title, start, end, deadline -> viewModel.onAddAdHoc(title, start, null, end, deadline) },
         onEditSpontaneous = viewModel::onEditSpontaneous,
         onDismissSpontaneousEditor = viewModel::onDismissSpontaneousEditor,
         onDeleteInstance = viewModel::onDeleteInstance,
@@ -27,6 +28,7 @@ fun TodayRoute(
         onConfirmPendingMove = viewModel::onConfirmPendingMove,
         onCancelPendingMove = viewModel::onCancelPendingMove,
         uiEvent = viewModel.uiEvent,
+        onNavigateToAccount = onNavigateToAccount,
         bottomBar = bottomBar
     )
 }

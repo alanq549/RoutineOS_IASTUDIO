@@ -132,7 +132,7 @@ private fun MonthCycleItem(
             )
         }
         Text(
-            text = month.yearMonth.month.getDisplayName(TextStyle.SHORT, Locale.getDefault()).uppercase(),
+            text = month.yearMonth.month.getDisplayName(TextStyle.SHORT, Locale("es", "ES")).uppercase(),
             style = RoutineTheme.typography.labelCaps,
             color = if (isSelected) RoutineTheme.colors.primary else RoutineTheme.colors.onSurfaceVariant,
             fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium

@@ -11,6 +11,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.alan.routineos.core.designsystem.theme.RoutineTheme
 import com.alan.routineos.domain.model.MetadataField
 import com.alan.routineos.domain.model.MetadataFieldType
@@ -69,17 +70,15 @@ fun MetadataEditorSheet(
             ) {
                 Column {
                     Text(
-                        text = "Métricas",
+                        text = "Datos a registrar",
                         style = RoutineTheme.typography.headlineMedium,
                         color = RoutineTheme.colors.onSurface
                     )
-                    currentSchema?.let {
-                        Text(
-                            text = "v${it.schemaVersion}",
-                            style = RoutineTheme.typography.labelCaps,
-                            color = RoutineTheme.colors.onSurfaceVariant
-                        )
-                    }
+                    Text(
+                        text = "Campos a rellenar al terminar la actividad (ej: peso, repeticiones).",
+                        style = RoutineTheme.typography.labelCaps.copy(fontSize = 11.sp),
+                        color = RoutineTheme.colors.onSurfaceVariant
+                    )
                 }
                 if (currentSchema != null) {
                     IconButton(onClick = onDeleteSchema) {
@@ -150,7 +149,7 @@ fun MetadataEditorSheet(
                         }
                         Row(verticalAlignment = Alignment.CenterVertically) {
                             Checkbox(checked = isReadOnly, onCheckedChange = { isReadOnly = it })
-                            Text("Contexto", style = RoutineTheme.typography.labelCaps)
+                            Text("Solo lectura", style = RoutineTheme.typography.labelCaps)
                         }
                     }
                 }
@@ -236,7 +235,7 @@ fun MetadataEditorSheet(
                 modifier = Modifier.fillMaxWidth(),
                 colors = ButtonDefaults.buttonColors(containerColor = RoutineTheme.colors.primary)
             ) {
-                Text("Guardar Plantilla")
+                Text("Guardar Campos")
             }
         }
     }

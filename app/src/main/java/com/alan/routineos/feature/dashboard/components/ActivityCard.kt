@@ -31,208 +31,220 @@ fun ActivityCard(
     activity: ActivityCardModel,
     onClick: () -> Unit,
     onDeleteClick: (() -> Unit)? = null,
+    onEditClick: (() -> Unit)? = null,
     modifier: Modifier = Modifier
 ) {
     val semanticColor = try { Color(android.graphics.Color.parseColor(activity.iconColorHex)) } catch (e: Exception) { RoutineTheme.colors.primary }
+    var showMenu by remember { mutableStateOf(false) }
 
     RoutineCard(
         modifier = modifier
             .fillMaxWidth()
             .clickable(onClick = onClick),
-        containerColor = Color(0xFF0B0E14),
+        containerColor = RoutineTheme.colors.surface1,
         border = BorderStroke(
             width = 1.dp,
             color = semanticColor.copy(alpha = 0.2f)
         )
     ) {
-        Column(modifier = Modifier.padding(20.dp)) {
-            // TOP HEADER: Icon + Identity info
+        Column(modifier = Modifier.padding(RoutineTheme.spacing.md)) {
+            // TOP HEADER: Icon + Identity info + Menu
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.Top
             ) {
-                Row(verticalAlignment = Alignment.CenterVertically) {
+                Row(
+                    modifier = Modifier.weight(1f, fill = false),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
                     Box(
                         modifier = Modifier
-                            .size(44.dp)
-                            .background(semanticColor.copy(alpha = 0.08f), RoundedCornerShape(10.dp))
-                            .border(1.dp, semanticColor.copy(alpha = 0.2f), RoundedCornerShape(10.dp)),
+                            .size(42.dp)
+                            .background(semanticColor.copy(alpha = 0.1f), RoutineTheme.shapes.small)
+                            .border(1.dp, semanticColor.copy(alpha = 0.25f), RoutineTheme.shapes.small),
                         contentAlignment = Alignment.Center
                     ) {
                         Icon(
                             imageVector = getTechnicalIcon(activity.iconName),
                             contentDescription = null,
-                            tint = semanticColor.copy(alpha = 0.9f),
-                            modifier = Modifier.size(22.dp)
+                            tint = semanticColor,
+                            modifier = Modifier.size(20.dp)
                         )
                     }
-                    Spacer(modifier = Modifier.width(14.dp))
+                    Spacer(modifier = Modifier.width(12.dp))
                     Column {
                         Text(
-                            text = activity.systemTitle ?: "SIN SISTEMA",
+                            text = (activity.systemTitle ?: "SIN ÁREA").uppercase(),
                             style = RoutineTheme.typography.labelCaps.copy(fontSize = 10.sp, color = semanticColor, fontWeight = FontWeight.Bold),
                         )
                         Text(
                             text = activity.title,
-                            style = RoutineTheme.typography.headlineMedium.copy(fontSize = 19.sp, fontWeight = FontWeight.ExtraBold),
-                            color = Color.White
+                            style = RoutineTheme.typography.headlineMedium.copy(fontSize = 17.sp, fontWeight = FontWeight.Bold),
+                            color = RoutineTheme.colors.onSurface
                         )
                     }
                 }
-                
-                Column(horizontalAlignment = Alignment.End) {
-                    Text(
-                        text = activity.frequency.uppercase(),
-                        style = RoutineTheme.typography.labelCaps.copy(fontSize = 9.sp, letterSpacing = 1.sp),
-                        color = RoutineTheme.colors.onSurfaceVariant.copy(alpha = 0.5f)
-                    )
-                    Text(
-                        text = activity.durationText,
-                        style = RoutineTheme.typography.dataLarge.copy(fontSize = 12.sp, fontWeight = FontWeight.Bold),
-                        color = semanticColor
-                    )
+
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Column(horizontalAlignment = Alignment.End) {
+                        Text(
+                            text = activity.frequency.uppercase(),
+                            style = RoutineTheme.typography.labelCaps.copy(fontSize = 9.sp, letterSpacing = 1.sp),
+                            color = RoutineTheme.colors.onSurfaceVariant.copy(alpha = 0.6f)
+                        )
+                        Text(
+                            text = activity.durationText,
+                            style = RoutineTheme.typography.dataMedium.copy(fontSize = 12.sp, fontWeight = FontWeight.Bold),
+                            color = semanticColor
+                        )
+                    }
+
+                    Box {
+                        IconButton(
+                            onClick = { showMenu = true },
+                            modifier = Modifier.size(36.dp)
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.MoreVert,
+                                contentDescription = "Opciones",
+                                tint = RoutineTheme.colors.onSurfaceVariant,
+                                modifier = Modifier.size(20.dp)
+                            )
+                        }
+
+                        RoutineDropdownMenu(
+                            expanded = showMenu,
+                            onDismissRequest = { showMenu = false }
+                        ) {
+                            RoutineDropdownMenuItem(
+                                text = "Editar rutina",
+                                onClick = {
+                                    showMenu = false
+                                    (onEditClick ?: onClick).invoke()
+                                },
+                                icon = Icons.Default.Edit
+                            )
+                            if (onDeleteClick != null) {
+                                RoutineDropdownMenuItem(
+                                    text = "Eliminar rutina",
+                                    onClick = {
+                                        showMenu = false
+                                        onDeleteClick()
+                                    },
+                                    icon = Icons.Default.Delete,
+                                    iconColor = RoutineTheme.colors.error
+                                )
+                            }
+                        }
+                    }
                 }
             }
-            
+
             if (activity.subtitle.isNotBlank()) {
                 Spacer(modifier = Modifier.height(6.dp))
                 Text(
                     text = activity.subtitle,
                     style = RoutineTheme.typography.bodyBase.copy(fontSize = 13.sp),
-                    color = RoutineTheme.colors.onSurfaceVariant.copy(alpha = 0.7f),
-                    modifier = Modifier.padding(start = 58.dp)
+                    color = RoutineTheme.colors.onSurfaceVariant.copy(alpha = 0.75f),
+                    modifier = Modifier.padding(start = 54.dp)
                 )
             }
-            
+
             if (activity.statsLine.isNotBlank()) {
-                Spacer(modifier = Modifier.height(12.dp))
+                Spacer(modifier = Modifier.height(10.dp))
                 Text(
                     text = activity.statsLine.uppercase(),
                     style = RoutineTheme.typography.labelCaps.copy(fontSize = 10.sp, letterSpacing = 0.5.sp),
                     color = RoutineTheme.colors.onSurfaceVariant.copy(alpha = 0.6f),
-                    modifier = Modifier.padding(start = 58.dp)
+                    modifier = Modifier.padding(start = 54.dp)
                 )
             }
-            
-            Spacer(modifier = Modifier.height(24.dp))
-            
-            // SUMMARY TREE (Compact Technical Layout)
+
+            // SUMMARY ITEMS (Clean presentation)
             if (activity.summaryItems.isNotEmpty()) {
+                Spacer(modifier = Modifier.height(14.dp))
                 Column(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .background(Color(0xFF070A0F), RoundedCornerShape(12.dp))
-                        .border(1.dp, RoutineTheme.colors.border.copy(alpha = 0.1f), RoundedCornerShape(12.dp))
-                        .padding(14.dp),
-                    verticalArrangement = Arrangement.spacedBy(16.dp)
+                        .background(RoutineTheme.colors.surface2, RoutineTheme.shapes.small)
+                        .border(1.dp, RoutineTheme.colors.border, RoutineTheme.shapes.small)
+                        .padding(12.dp),
+                    verticalArrangement = Arrangement.spacedBy(10.dp)
                 ) {
-                   activity.summaryItems.forEach { summary ->
-                       Column {
-                           Row(
-                               modifier = Modifier.fillMaxWidth(),
-                               horizontalArrangement = Arrangement.SpaceBetween,
-                               verticalAlignment = Alignment.CenterVertically
-                           ) {
-                               Text(
-                                   text = summary.dayName.uppercase(),
-                                   style = RoutineTheme.typography.labelCaps.copy(fontSize = 11.sp, fontWeight = FontWeight.Bold),
-                                   color = semanticColor.copy(alpha = 0.9f)
-                               )
-                           }
-                           
-                           summary.activities.forEach { activityName ->
-                               Row(
-                                   modifier = Modifier.padding(start = 8.dp, top = 6.dp),
-                                   verticalAlignment = Alignment.CenterVertically
-                               ) {
-                                   Box(
-                                       modifier = Modifier
-                                           .width(1.5.dp)
-                                           .height(14.dp)
-                                           .background(RoutineTheme.colors.border.copy(alpha = 0.3f))
-                                   )
-                                   Box(
-                                       modifier = Modifier
-                                           .width(8.dp)
-                                           .height(1.5.dp)
-                                           .background(RoutineTheme.colors.border.copy(alpha = 0.3f))
-                                   )
-                                   Spacer(modifier = Modifier.width(10.dp))
-                                   
-                                   Box(
-                                       modifier = Modifier.size(6.dp).background(semanticColor.copy(alpha = 0.5f), CircleShape)
-                                   )
-                                   Spacer(modifier = Modifier.width(10.dp))
+                    activity.summaryItems.forEach { summary ->
+                        Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.SpaceBetween,
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Text(
+                                    text = summary.dayName.uppercase(),
+                                    style = RoutineTheme.typography.labelCaps.copy(fontSize = 11.sp, fontWeight = FontWeight.Bold),
+                                    color = semanticColor
+                                )
+                                if (summary.detailText != null) {
+                                    Text(
+                                        text = summary.detailText,
+                                        style = RoutineTheme.typography.labelCaps.copy(fontSize = 10.sp),
+                                        color = RoutineTheme.colors.onSurfaceVariant.copy(alpha = 0.7f)
+                                    )
+                                }
+                            }
 
-                                   Text(
-                                       text = activityName,
-                                       style = RoutineTheme.typography.bodyBase.copy(fontSize = 13.sp),
-                                       color = RoutineTheme.colors.onSurface.copy(alpha = 0.8f),
-                                       maxLines = 1,
-                                       overflow = TextOverflow.Ellipsis,
-                                       modifier = Modifier.weight(1f)
-                                   )
-                               }
-                           }
-                       }
-                   }
-
-                   if (activity.moreDaysCount > 0) {
-                       Row(
-                           verticalAlignment = Alignment.CenterVertically,
-                           modifier = Modifier.padding(top = 4.dp)
-                       ) {
-                           Icon(
-                               imageVector = Icons.Default.ChevronRight,
-                               contentDescription = null,
-                               tint = RoutineTheme.colors.onSurfaceVariant.copy(alpha = 0.4f),
-                               modifier = Modifier.size(14.dp)
-                           )
-                           Spacer(modifier = Modifier.width(8.dp))
-                           Text(
-                               text = "+ ${activity.moreDaysCount} DÍAS",
-                               style = RoutineTheme.typography.labelCaps.copy(fontSize = 9.sp, fontWeight = FontWeight.Bold),
-                               color = RoutineTheme.colors.onSurfaceVariant.copy(alpha = 0.6f)
-                           )
-                       }
-                   }
-                }
-            }
-            
-            if (onDeleteClick != null) {
-                Spacer(modifier = Modifier.height(20.dp))
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.End,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Surface(
-                        onClick = onDeleteClick,
-                        color = RoutineTheme.colors.error.copy(alpha = 0.1f),
-                        shape = RoundedCornerShape(8.dp),
-                        border = BorderStroke(1.dp, RoutineTheme.colors.error.copy(alpha = 0.25f)),
-                        modifier = Modifier.height(36.dp)
-                    ) {
-                        Row(
-                            modifier = Modifier.padding(horizontal = 14.dp),
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            Icon(
-                                imageVector = Icons.Default.Delete,
-                                contentDescription = "Borrar actividad",
-                                tint = RoutineTheme.colors.error,
-                                modifier = Modifier.size(14.dp)
-                            )
-                            Spacer(modifier = Modifier.width(6.dp))
-                            Text(
-                                text = "ELIMINAR",
-                                style = RoutineTheme.typography.labelCaps.copy(fontSize = 10.sp, fontWeight = FontWeight.Bold),
-                                color = RoutineTheme.colors.error
-                            )
+                            summary.activities.forEach { activityName ->
+                                Row(
+                                    modifier = Modifier.padding(start = 4.dp),
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                                ) {
+                                    Box(
+                                        modifier = Modifier
+                                            .size(5.dp)
+                                            .background(semanticColor.copy(alpha = 0.6f), CircleShape)
+                                    )
+                                    Text(
+                                        text = activityName,
+                                        style = RoutineTheme.typography.bodyBase.copy(fontSize = 13.sp),
+                                        color = RoutineTheme.colors.onSurface.copy(alpha = 0.85f),
+                                        maxLines = 1,
+                                        overflow = TextOverflow.Ellipsis,
+                                        modifier = Modifier.weight(1f)
+                                    )
+                                }
+                            }
                         }
                     }
+
+                    if (activity.moreDaysCount > 0) {
+                        Text(
+                            text = "+ ${activity.moreDaysCount} DÍAS MÁS",
+                            style = RoutineTheme.typography.labelCaps.copy(fontSize = 9.sp, fontWeight = FontWeight.Bold),
+                            color = RoutineTheme.colors.onSurfaceVariant.copy(alpha = 0.6f),
+                            modifier = Modifier.padding(start = 4.dp)
+                        )
+                    }
                 }
+            }
+
+            Spacer(modifier = Modifier.height(12.dp))
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    text = "Tocar para organizar pasos y horarios",
+                    style = RoutineTheme.typography.labelCaps.copy(fontSize = 10.sp),
+                    color = RoutineTheme.colors.onSurfaceVariant.copy(alpha = 0.45f)
+                )
+                Icon(
+                    imageVector = Icons.AutoMirrored.Filled.ArrowForward,
+                    contentDescription = null,
+                    tint = RoutineTheme.colors.onSurfaceVariant.copy(alpha = 0.4f),
+                    modifier = Modifier.size(14.dp)
+                )
             }
         }
     }

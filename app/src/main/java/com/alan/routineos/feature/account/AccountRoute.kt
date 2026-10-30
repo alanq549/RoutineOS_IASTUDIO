@@ -8,6 +8,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 @Composable
 fun AccountRoute(
     viewModel: AccountViewModel = viewModel(),
+    onBack: () -> Unit = {},
     bottomBar: @Composable () -> Unit = {}
 ) {
     val uiState by viewModel.uiState.collectAsState()
@@ -15,6 +16,7 @@ fun AccountRoute(
     AccountScreen(
         uiState = uiState,
         onLogout = viewModel::onLogout,
+        onBack = onBack,
         bottomBar = bottomBar
     )
 }

@@ -46,6 +46,7 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.alan.routineos.core.designsystem.component.RoutineEmptyState
 import com.alan.routineos.core.designsystem.theme.RoutineTheme
 import com.alan.routineos.domain.model.BacklogItem
 
@@ -79,22 +80,37 @@ fun BacklogPanelSheet(
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Row(verticalAlignment = Alignment.CenterVertically) {
+                Row(
+                    modifier = Modifier
+                        .weight(1f)
+                        .padding(end = 12.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
                     Icon(
                         imageVector = Icons.Default.Inbox,
                         contentDescription = null,
                         tint = RoutineTheme.colors.primary,
-                        modifier = Modifier.size(20.dp)
+                        modifier = Modifier.size(RoutineTheme.dimensions.iconSmall)
                     )
-                    Spacer(modifier = Modifier.width(8.dp))
-                    Text(
-                        text = "BOLSA DE PENDIENTES",
-                        style = RoutineTheme.typography.labelCaps.copy(
-                            letterSpacing = 2.sp,
-                            fontWeight = FontWeight.Bold
-                        ),
-                        color = RoutineTheme.colors.onSurface
-                    )
+                    Spacer(modifier = Modifier.width(RoutineTheme.spacing.sm))
+                    Column {
+                        Text(
+                            text = "PENDIENTES",
+                            style = RoutineTheme.typography.labelCaps.copy(
+                                letterSpacing = 1.5.sp,
+                                fontWeight = FontWeight.Bold
+                            ),
+                            color = RoutineTheme.colors.onSurface
+                        )
+                        Text(
+                            text = "Cosas que quieres hacer, pero aún no tienen un momento asignado.",
+                            style = RoutineTheme.typography.bodyBase.copy(
+                                fontSize = 11.sp,
+                                lineHeight = 14.sp
+                            ),
+                            color = RoutineTheme.colors.onSurfaceVariant
+                        )
+                    }
                 }
 
                 Surface(
@@ -102,18 +118,15 @@ fun BacklogPanelSheet(
                     shape = RoutineTheme.shapes.small
                 ) {
                     Text(
-                        text = "${openBacklogItems.size} ABIERTOS",
-                        style = RoutineTheme.typography.labelCaps.copy(
-                            fontSize = 9.sp,
-                            fontWeight = FontWeight.Bold
-                        ),
+                        text = "${openBacklogItems.size} POR HACER",
+                        style = RoutineTheme.typography.captionTag,
                         color = RoutineTheme.colors.primary,
                         modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
                     )
                 }
             }
 
-            Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(RoutineTheme.spacing.md))
 
             // Quick Create Input
             OutlinedTextField(
@@ -160,18 +173,12 @@ fun BacklogPanelSheet(
 
             // Backlog Items List
             if (openBacklogItems.isEmpty()) {
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(vertical = 32.dp),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Text(
-                        text = "No hay pendientes en el backlog",
-                        style = RoutineTheme.typography.bodyBase,
-                        color = RoutineTheme.colors.onSurfaceVariant.copy(alpha = 0.6f)
-                    )
-                }
+                RoutineEmptyState(
+                    title = "Sin tareas pendientes",
+                    description = "Añade notas o tareas sueltas arriba para programarlas más tarde.",
+                    icon = Icons.Default.Inbox,
+                    modifier = Modifier.fillMaxWidth()
+                )
             } else {
                 LazyColumn(
                     modifier = Modifier

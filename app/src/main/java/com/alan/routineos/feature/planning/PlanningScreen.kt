@@ -1,6 +1,5 @@
 package com.alan.routineos.feature.planning
 
-import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -22,9 +21,10 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AccountTree
 import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.Close
-import androidx.compose.material.icons.filled.FlashOn
+import androidx.compose.material.icons.filled.CalendarToday
 import androidx.compose.material.icons.filled.Inbox
+import androidx.compose.material.icons.filled.Notifications
+import com.alan.routineos.core.designsystem.component.RoutineEmptyState
 import com.alan.routineos.feature.planning.components.BacklogPanelSheet
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.DatePicker
@@ -113,7 +113,6 @@ fun PlanningScreen(
     var showDatePicker by remember { mutableStateOf(false) }
     val datePickerState = rememberDatePickerState()
 
-    var fabMenuExpanded by remember { mutableStateOf(false) }
     var showCatalogSheet by remember { mutableStateOf(false) }
     var showBacklogSheet by remember { mutableStateOf(false) }
 
@@ -157,7 +156,7 @@ fun PlanningScreen(
 
             Spacer(modifier = Modifier.height(24.dp))
 
-                        // Floating Section: SOLO Recordatorios (sin hora por naturaleza)
+                        // Floating Section: Recordatorios sin hora fija (alineados con el eje del cronograma)
             val unscheduledReminders =
                 uiState.unscheduledItems.filter { it.itemType == PlanningItemType.REMINDER }
             if (unscheduledReminders.isNotEmpty()) {
@@ -167,28 +166,60 @@ fun PlanningScreen(
                         FLOATING_VISIBLE_LIMIT
                     )
 
-                Column(
-                    modifier = Modifier.padding(horizontal = RoutineTheme.spacing.md),
-                    verticalArrangement = Arrangement.spacedBy(4.dp)
+                PlanningSection(
+                    title = "RECORDATORIOS DEL DÍA",
+                    subtitle = "${unscheduledReminders.size} sin hora fija"
                 ) {
-                    visibleFloating.forEach { item ->
-                        PlanningReminderCard(item = item, onAction = onAction)
-                    }
+                    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                        visibleFloating.forEach { item ->
+                            Row(
+                                modifier = Modifier.fillMaxWidth().padding(vertical = 2.dp),
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Column(
+                                    modifier = Modifier.width(72.dp),
+                                    horizontalAlignment = Alignment.CenterHorizontally
+                                ) {
+                                    Surface(
+                                        color = RoutineTheme.colors.roleReminder.copy(alpha = 0.12f),
+                                        shape = RoutineTheme.shapes.small,
+                                        border = BorderStroke(1.dp, RoutineTheme.colors.roleReminder.copy(alpha = 0.3f))
+                                    ) {
+                                        Icon(
+                                            imageVector = Icons.Default.Notifications,
+                                            contentDescription = null,
+                                            tint = RoutineTheme.colors.roleReminder,
+                                            modifier = Modifier.padding(6.dp).size(16.dp)
+                                        )
+                                    }
+                                    Text(
+                                        text = "Aviso",
+                                        style = RoutineTheme.typography.labelCaps.copy(fontSize = 9.sp, color = RoutineTheme.colors.onSurfaceVariant.copy(alpha = 0.5f)),
+                                        modifier = Modifier.padding(top = 2.dp)
+                                    )
+                                }
+                                Spacer(modifier = Modifier.width(12.dp))
+                                PlanningReminderCard(item = item, onAction = onAction, modifier = Modifier.weight(1f))
+                            }
+                        }
 
-                    if (!showAllFloating && unscheduledReminders.size > FLOATING_VISIBLE_LIMIT) {
-                        Text(
-                            text = "+${unscheduledReminders.size - FLOATING_VISIBLE_LIMIT} más",
-                            style = RoutineTheme.typography.labelCaps.copy(fontSize = 9.sp),
-                            color = RoutineTheme.colors.onSurfaceVariant.copy(alpha = 0.5f),
-                            modifier = Modifier
-                                .padding(horizontal = 4.dp, vertical = 2.dp)
-                                .clickable { showAllFloating = true }
-                        )
+                        if (!showAllFloating && unscheduledReminders.size > FLOATING_VISIBLE_LIMIT) {
+                            Row(modifier = Modifier.fillMaxWidth()) {
+                                Spacer(modifier = Modifier.width(84.dp))
+                                Text(
+                                    text = "+${unscheduledReminders.size - FLOATING_VISIBLE_LIMIT} más",
+                                    style = RoutineTheme.typography.labelCaps.copy(fontSize = 10.sp, color = RoutineTheme.colors.primary),
+                                    modifier = Modifier
+                                        .clickable { showAllFloating = true }
+                                        .padding(vertical = 4.dp)
+                                )
+                            }
+                        }
                     }
                 }
-            }
 
-            Spacer(modifier = Modifier.height(24.dp))
+                Spacer(modifier = Modifier.height(24.dp))
+            }
 
             // Cronograma: Tareas sin hora (pineadas arriba) + Actividades/Tareas programadas
             val unscheduledTasks =
@@ -257,6 +288,69 @@ fun PlanningScreen(
             }
         }
 
+        // Bottom Quick-Access Tray for Pendientes & Rutinas
+        Row(
+            modifier = Modifier
+                .align(Alignment.BottomStart)
+                .padding(start = RoutineTheme.spacing.md, bottom = 20.dp)
+                .padding(end = 84.dp),
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Surface(
+                onClick = { showBacklogSheet = true },
+                color = RoutineTheme.colors.surface2,
+                shape = RoutineTheme.shapes.pill,
+                border = BorderStroke(
+                    1.dp,
+                    if (uiState.openBacklogItems.isNotEmpty()) RoutineTheme.colors.primary.copy(alpha = 0.5f) else RoutineTheme.colors.border
+                )
+            ) {
+                Row(
+                    modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Inbox,
+                        contentDescription = null,
+                        tint = if (uiState.openBacklogItems.isNotEmpty()) RoutineTheme.colors.primary else RoutineTheme.colors.onSurfaceVariant,
+                        modifier = Modifier.size(16.dp)
+                    )
+                    Spacer(modifier = Modifier.width(6.dp))
+                    Text(
+                        text = "PENDIENTES (${uiState.openBacklogItems.size})",
+                        style = RoutineTheme.typography.labelCaps.copy(fontSize = 10.sp, fontWeight = FontWeight.Bold),
+                        color = RoutineTheme.colors.onSurface
+                    )
+                }
+            }
+
+            Surface(
+                onClick = { showCatalogSheet = true },
+                color = RoutineTheme.colors.surface2,
+                shape = RoutineTheme.shapes.pill,
+                border = BorderStroke(1.dp, RoutineTheme.colors.border)
+            ) {
+                Row(
+                    modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.AccountTree,
+                        contentDescription = null,
+                        tint = RoutineTheme.colors.primary,
+                        modifier = Modifier.size(16.dp)
+                    )
+                    Spacer(modifier = Modifier.width(6.dp))
+                    Text(
+                        text = "RUTINAS",
+                        style = RoutineTheme.typography.labelCaps.copy(fontSize = 10.sp, fontWeight = FontWeight.Bold),
+                        color = RoutineTheme.colors.onSurface
+                    )
+                }
+            }
+        }
+
         Column(
             modifier = Modifier
                 .align(Alignment.BottomEnd)
@@ -280,109 +374,15 @@ fun PlanningScreen(
                 }
             }
 
-            AnimatedVisibility(visible = fabMenuExpanded) {
-                Column(
-                    horizontalAlignment = Alignment.End,
-                    verticalArrangement = Arrangement.spacedBy(10.dp)
-                ) {
-                    // Option 1: Catálogo de Actividades
-                    Surface(
-                        onClick = {
-                            fabMenuExpanded = false
-                            showCatalogSheet = true
-                        },
-                        color = RoutineTheme.colors.surface2,
-                        shape = RoutineTheme.shapes.pill,
-                        border = BorderStroke(1.dp, RoutineTheme.colors.border)
-                    ) {
-                        Row(
-                            modifier = Modifier.padding(horizontal = 16.dp, vertical = 10.dp),
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            Icon(
-                                imageVector = Icons.Default.AccountTree,
-                                contentDescription = null,
-                                tint = RoutineTheme.colors.primary,
-                                modifier = Modifier.size(18.dp)
-                            )
-                            Spacer(modifier = Modifier.width(8.dp))
-                            Text(
-                                text = "AÑADIR DE CATÁLOGO",
-                                style = RoutineTheme.typography.labelCaps.copy(fontWeight = FontWeight.Bold),
-                                color = RoutineTheme.colors.onSurface
-                            )
-                        }
-                    }
-
-                    // Option 2: Pendientes (Backlog)
-                    Surface(
-                        onClick = {
-                            fabMenuExpanded = false
-                            showBacklogSheet = true
-                        },
-                        color = RoutineTheme.colors.surface2,
-                        shape = RoutineTheme.shapes.pill,
-                        border = BorderStroke(1.dp, RoutineTheme.colors.border)
-                    ) {
-                        Row(
-                            modifier = Modifier.padding(horizontal = 16.dp, vertical = 10.dp),
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            Icon(
-                                imageVector = Icons.Default.Inbox,
-                                contentDescription = null,
-                                tint = RoutineTheme.colors.primary,
-                                modifier = Modifier.size(18.dp)
-                            )
-                            Spacer(modifier = Modifier.width(8.dp))
-                            Text(
-                                text = "PENDIENTES (BACKLOG)",
-                                style = RoutineTheme.typography.labelCaps.copy(fontWeight = FontWeight.Bold),
-                                color = RoutineTheme.colors.onSurface
-                            )
-                        }
-                    }
-
-                    // Option 3: Evento Espontáneo
-                    Surface(
-                        onClick = {
-                            fabMenuExpanded = false
-                            onAddEventClick()
-                        },
-                        color = RoutineTheme.colors.surface2,
-                        shape = RoutineTheme.shapes.pill,
-                        border = BorderStroke(1.dp, RoutineTheme.colors.border)
-                    ) {
-                        Row(
-                            modifier = Modifier.padding(horizontal = 16.dp, vertical = 10.dp),
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            Icon(
-                                imageVector = Icons.Default.FlashOn,
-                                contentDescription = null,
-                                tint = RoutineTheme.colors.roleEvent,
-                                modifier = Modifier.size(18.dp)
-                            )
-                            Spacer(modifier = Modifier.width(8.dp))
-                            Text(
-                                text = "EVENTO ESPONTÁNEO",
-                                style = RoutineTheme.typography.labelCaps.copy(fontWeight = FontWeight.Bold),
-                                color = RoutineTheme.colors.onSurface
-                            )
-                        }
-                    }
-                }
-            }
-
             FloatingActionButton(
-                onClick = { fabMenuExpanded = !fabMenuExpanded },
+                onClick = onAddEventClick,
                 containerColor = RoutineTheme.colors.primary,
                 contentColor = Color.Black,
                 shape = RoutineTheme.shapes.pill
             ) {
                 Icon(
-                    imageVector = if (fabMenuExpanded) Icons.Default.Close else Icons.Default.Add,
-                    contentDescription = "Opciones de nuevo elemento"
+                    imageVector = Icons.Default.Add,
+                    contentDescription = "Añadir a este día"
                 )
             }
         }
@@ -514,13 +514,10 @@ private fun PlanningSection(
 
 @Composable
 private fun EmptySectionMessage(message: String) {
-    Text(
-        text = message,
-        style = RoutineTheme.typography.bodyBase,
-        color = RoutineTheme.colors.onSurfaceVariant.copy(alpha = 0.5f),
-        modifier = Modifier
-            .padding(vertical = 16.dp)
-            .fillMaxWidth(),
-        textAlign = androidx.compose.ui.text.style.TextAlign.Center
+    RoutineEmptyState(
+        title = message,
+        description = "Usa el botón + para programar actividades o pendientes",
+        icon = Icons.Default.CalendarToday,
+        modifier = Modifier.padding(vertical = 12.dp)
     )
 }

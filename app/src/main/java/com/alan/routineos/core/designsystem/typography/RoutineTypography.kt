@@ -38,7 +38,8 @@ val InterFamily = FontFamily(
 
 val JetBrainsMonoFamily = FontFamily(
     Font(googleFont = JetBrainsMonoFont, fontProvider = provider, weight = FontWeight.Normal),
-    Font(googleFont = JetBrainsMonoFont, fontProvider = provider, weight = FontWeight.Medium)
+    Font(googleFont = JetBrainsMonoFont, fontProvider = provider, weight = FontWeight.Medium),
+    Font(googleFont = JetBrainsMonoFont, fontProvider = provider, weight = FontWeight.Bold)
 )
 
 @Immutable
@@ -63,11 +64,25 @@ data class RoutineTypography(
         fontSize = 16.sp,
         lineHeight = 24.sp
     ),
+    val dataHero: TextStyle = TextStyle(
+        fontFamily = JetBrainsMonoFamily,
+        fontWeight = FontWeight.Bold,
+        fontSize = 20.sp,
+        lineHeight = 26.sp,
+        letterSpacing = (-0.02).sp
+    ),
     val dataLarge: TextStyle = TextStyle(
         fontFamily = JetBrainsMonoFamily,
         fontWeight = FontWeight.Medium,
         fontSize = 18.sp,
         lineHeight = 24.sp,
+        letterSpacing = (-0.01).sp
+    ),
+    val dataMedium: TextStyle = TextStyle(
+        fontFamily = JetBrainsMonoFamily,
+        fontWeight = FontWeight.Bold,
+        fontSize = 13.sp,
+        lineHeight = 18.sp,
         letterSpacing = (-0.01).sp
     ),
     val labelCaps: TextStyle = TextStyle(
@@ -76,6 +91,13 @@ data class RoutineTypography(
         fontSize = 12.sp,
         lineHeight = 16.sp,
         letterSpacing = 0.05.sp
+    ),
+    val captionTag: TextStyle = TextStyle(
+        fontFamily = InterFamily,
+        fontWeight = FontWeight.Bold,
+        fontSize = 10.sp,
+        lineHeight = 14.sp,
+        letterSpacing = 1.sp
     )
 )
 

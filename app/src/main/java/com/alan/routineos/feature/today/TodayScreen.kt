@@ -6,6 +6,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.CalendarToday
 import androidx.compose.material.icons.filled.MyLocation
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -15,6 +16,7 @@ import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.graphics.*
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
+import com.alan.routineos.core.designsystem.component.RoutineEmptyState
 import com.alan.routineos.core.designsystem.component.RoutineScaffold
 import com.alan.routineos.core.designsystem.theme.RoutineTheme
 import com.alan.routineos.feature.dashboard.ActivityDetailUiEvent
@@ -30,7 +32,7 @@ fun TodayScreen(
     onExpandClick: (String) -> Unit,
     onMetadataCaptured: (String, String) -> Unit,
     onCloseCapture: () -> Unit,
-    onAddAdHoc: (String, Int?, Int?) -> Unit,
+    onAddAdHoc: (String, Int?, Int?, Long?) -> Unit,
     onEditSpontaneous: (String) -> Unit,
     onDismissSpontaneousEditor: () -> Unit,
     onDeleteInstance: (String) -> Unit,
@@ -40,6 +42,7 @@ fun TodayScreen(
     onCancelPendingMove: () -> Unit,
     uiEvent: SharedFlow<ActivityDetailUiEvent>,
     modifier: Modifier = Modifier,
+    onNavigateToAccount: (() -> Unit)? = null,
     bottomBar: @Composable () -> Unit = {}
 ) {
     val snackbarHostState = remember { SnackbarHostState() }
@@ -93,8 +96,8 @@ fun TodayScreen(
 
     if (showQuickAdd) {
         QuickAddDialog(
-            onConfirm = { title, start, end -> 
-                onAddAdHoc(title, start, end)
+            onConfirm = { title, start, end, deadline -> 
+                onAddAdHoc(title, start, end, deadline)
                 showQuickAdd = false
             },
             onDismiss = { showQuickAdd = false }
@@ -130,7 +133,8 @@ fun TodayScreen(
         topBar = { 
             TodayHeader(
                 dateText = uiState.dateText,
-                progress = uiState.progress
+                progress = uiState.progress,
+                onNavigateToAccount = onNavigateToAccount
             )
         },
         snackbarHost = { SnackbarHost(snackbarHostState) },
@@ -179,6 +183,17 @@ fun TodayScreen(
                     },
                     onExpandClick = onExpandClick
                 )
+
+                if (uiState.timelineItems.isEmpty() && uiState.nextActivity == null) {
+                    item {
+                        RoutineEmptyState(
+                            title = "Día despejado",
+                            description = "No tienes actividades programadas para hoy",
+                            icon = Icons.Default.CalendarToday,
+                            modifier = Modifier.padding(top = 40.dp)
+                        )
+                    }
+                }
             }
 
             // NOW button (Stays visible on top of the mask)

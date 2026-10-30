@@ -1,5 +1,6 @@
 package com.alan.routineos.feature.stats.components
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -27,9 +28,9 @@ fun AdherenceList(
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
         Text(
-            title,
-            style = RoutineTheme.typography.headlineMedium,
-            color = RoutineTheme.colors.onSurface
+            text = title.uppercase(),
+            style = RoutineTheme.typography.labelCaps.copy(letterSpacing = 1.5.sp),
+            color = RoutineTheme.colors.onSurfaceVariant.copy(alpha = 0.7f)
         )
 
         if (systems.isEmpty() && activities.isEmpty()) {
@@ -79,8 +80,9 @@ private fun BaseAdherenceRow(
     spontaneousCount: Int = 0
 ) {
     Surface(
-        color = RoutineTheme.colors.surface2,
+        color = RoutineTheme.colors.surface1,
         shape = RoutineTheme.shapes.medium,
+        border = BorderStroke(1.dp, RoutineTheme.colors.border),
         modifier = Modifier.fillMaxWidth()
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
@@ -132,7 +134,7 @@ private fun BaseAdherenceRow(
             ) {
                 MetricLegend(label = "Hecho", color = RoutineTheme.colors.primary)
                 MetricLegend(label = "Omitido", color = RoutineTheme.colors.surface3)
-                MetricLegend(label = "Missed", color = RoutineTheme.colors.onSurface.copy(alpha = 0.05f))
+                MetricLegend(label = "No realizadas", color = RoutineTheme.colors.onSurface.copy(alpha = 0.05f))
                 if (spontaneousCount > 0) {
                     MetricLegend(label = "Espontáneas ($spontaneousCount)", color = RoutineTheme.colors.tertiary)
                 }
