@@ -32,7 +32,8 @@ fun ActivityCard(
     onClick: () -> Unit,
     onDeleteClick: (() -> Unit)? = null,
     onEditClick: (() -> Unit)? = null,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    isSheetMode: Boolean = false
 ) {
     val semanticColor = try { Color(android.graphics.Color.parseColor(activity.iconColorHex)) } catch (e: Exception) { RoutineTheme.colors.primary }
     var showMenu by remember { mutableStateOf(false) }
@@ -228,23 +229,44 @@ fun ActivityCard(
                 }
             }
 
-            Spacer(modifier = Modifier.height(12.dp))
+            Spacer(modifier = Modifier.height(14.dp))
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Text(
-                    text = "Tocar para organizar pasos y horarios",
-                    style = RoutineTheme.typography.labelCaps.copy(fontSize = 10.sp),
-                    color = RoutineTheme.colors.onSurfaceVariant.copy(alpha = 0.45f)
-                )
-                Icon(
-                    imageVector = Icons.AutoMirrored.Filled.ArrowForward,
-                    contentDescription = null,
-                    tint = RoutineTheme.colors.onSurfaceVariant.copy(alpha = 0.4f),
-                    modifier = Modifier.size(14.dp)
-                )
+                Button(
+                    onClick = onClick,
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = RoutineTheme.colors.primary,
+                        contentColor = RoutineTheme.colors.onPrimary
+                    ),
+                    shape = RoutineTheme.shapes.small,
+                    contentPadding = PaddingValues(horizontal = 14.dp, vertical = 6.dp),
+                    modifier = Modifier.height(32.dp)
+                ) {
+                    Text(
+                        text = if (isSheetMode) "+ AÑADIR AL DÍA" else "ABRIR",
+                        style = RoutineTheme.typography.labelCaps.copy(fontSize = 10.sp, fontWeight = FontWeight.Black)
+                    )
+                }
+
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(4.dp)
+                ) {
+                    Text(
+                        text = "Pasos y horarios",
+                        style = RoutineTheme.typography.labelCaps.copy(fontSize = 10.sp),
+                        color = RoutineTheme.colors.onSurfaceVariant.copy(alpha = 0.5f)
+                    )
+                    Icon(
+                        imageVector = Icons.AutoMirrored.Filled.ArrowForward,
+                        contentDescription = null,
+                        tint = RoutineTheme.colors.onSurfaceVariant.copy(alpha = 0.5f),
+                        modifier = Modifier.size(13.dp)
+                    )
+                }
             }
         }
     }

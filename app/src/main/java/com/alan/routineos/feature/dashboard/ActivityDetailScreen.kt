@@ -135,7 +135,7 @@ fun ActivityDetailScreen(
     RoutineScaffold(
         topBar = { 
             EngineeringTopBar(
-                title = uiState.activity?.title ?: "MOLDE",
+                title = uiState.activity?.title ?: "RUTINA",
                 onBackClick = onBackClick,
                 onSaveClick = { /* No-op or sync signal */ }
             ) 
@@ -212,14 +212,14 @@ private fun EngineeringTopBar(
             ) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     IconButton(onClick = onBackClick, modifier = Modifier.size(32.dp)) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, null, tint = Color.White)
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, "Volver", tint = RoutineTheme.colors.onSurface)
                     }
                     Spacer(modifier = Modifier.width(8.dp))
                     Column {
                         Text(
-                            text = "DETALLE DE ACTIVIDAD",
+                            text = "DETALLE DE RUTINA",
                             style = RoutineTheme.typography.labelCaps.copy(fontSize = 11.sp, letterSpacing = 1.sp),
-                            color = Color.White
+                            color = RoutineTheme.colors.onSurface
                         )
                     }
                 }
@@ -227,17 +227,20 @@ private fun EngineeringTopBar(
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Button(
                         onClick = onSaveClick,
-                        colors = ButtonDefaults.buttonColors(containerColor = RoutineTheme.colors.primary),
-                        shape = RoundedCornerShape(8.dp),
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = RoutineTheme.colors.primary,
+                            contentColor = RoutineTheme.colors.onPrimary
+                        ),
+                        shape = RoutineTheme.shapes.small,
                         contentPadding = PaddingValues(horizontal = 12.dp, vertical = 4.dp),
                         modifier = Modifier.height(32.dp)
                     ) {
-                        Icon(Icons.Default.Save, null, tint = Color.Black, modifier = Modifier.size(14.dp))
+                        Icon(Icons.Default.Save, null, tint = RoutineTheme.colors.onPrimary, modifier = Modifier.size(14.dp))
                         Spacer(modifier = Modifier.width(6.dp))
                         Text(
                             "GUARDAR", 
                             style = RoutineTheme.typography.labelCaps.copy(fontSize = 10.sp, fontWeight = FontWeight.Black),
-                            color = Color.Black
+                            color = RoutineTheme.colors.onPrimary
                         )
                     }
                 }
@@ -949,7 +952,7 @@ private fun TechnicalStatBadge(
 @Composable
 private fun EmptyNodesMessage() {
     Text(
-        text = "Este molde no tiene estructura definida aún.",
+        text = "Esta rutina no tiene pasos definidos aún.",
         style = RoutineTheme.typography.bodyBase.copy(fontSize = 14.sp),
         color = RoutineTheme.colors.onSurfaceVariant.copy(alpha = 0.5f),
         modifier = Modifier.padding(vertical = 32.dp)

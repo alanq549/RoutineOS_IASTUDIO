@@ -401,6 +401,10 @@ fun PlanningScreen(
                 },
                 onActivityClick = { activityId ->
                     showCatalogSheet = false
+                    onAddActivityFromCatalog(activityId)
+                },
+                onEditActivity = { activityId ->
+                    showCatalogSheet = false
                     onNavigateToActivityDetail(activityId)
                 },
                 isSheetMode = true

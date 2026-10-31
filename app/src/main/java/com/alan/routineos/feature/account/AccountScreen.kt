@@ -1,5 +1,6 @@
 package com.alan.routineos.feature.account
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -21,6 +22,10 @@ import com.alan.routineos.core.designsystem.theme.RoutineTheme
 import com.alan.routineos.feature.account.components.AccountProfileCard
 import com.alan.routineos.feature.account.components.AccountSection
 
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.ui.draw.drawBehind
+import androidx.compose.ui.geometry.Offset
+
 @Composable
 fun AccountScreen(
     uiState: AccountUiState,
@@ -31,50 +36,22 @@ fun AccountScreen(
 ) {
     RoutineScaffold(
         modifier = modifier,
+        topBar = {
+            AccountHeader(onBack = onBack)
+        },
         bottomBar = bottomBar
     ) { paddingValues ->
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .statusBarsPadding()
-                .padding(bottom = paddingValues.calculateBottomPadding())
+                .padding(paddingValues)
         ) {
-            // Main Header
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(start = 4.dp, end = RoutineTheme.spacing.marginMobile)
-                    .padding(top = RoutineTheme.spacing.lg),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                if (onBack != null) {
-                    IconButton(
-                        onClick = onBack,
-                        modifier = Modifier.padding(end = 4.dp)
-                    ) {
-                        Icon(
-                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = "Volver",
-                            tint = RoutineTheme.colors.onSurface
-                        )
-                    }
-                }
-                Text(
-                    text = "Cuenta",
-                    style = RoutineTheme.typography.displayLarge,
-                    color = RoutineTheme.colors.primary,
-                    fontWeight = FontWeight.Bold
-                )
-            }
-
-            Spacer(modifier = Modifier.height(RoutineTheme.spacing.md))
-
             Column(
                 modifier = Modifier
                     .fillMaxSize()
                     .verticalScroll(rememberScrollState())
                     .padding(horizontal = RoutineTheme.spacing.marginMobile)
-                    .padding(bottom = RoutineTheme.spacing.xl)
+                    .padding(top = RoutineTheme.spacing.md, bottom = RoutineTheme.spacing.xl)
             ) {
                 uiState.profile?.let {
                     AccountProfileCard(profile = it)
@@ -122,6 +99,73 @@ fun AccountScreen(
                         color = RoutineTheme.colors.onSurfaceVariant
                     )
                 }
+            }
+        }
+    }
+}
+
+@Composable
+private fun AccountHeader(
+    onBack: (() -> Unit)?,
+    modifier: Modifier = Modifier
+) {
+    val borderColor = RoutineTheme.colors.border.copy(alpha = 0.3f)
+
+    Box(
+        modifier = modifier
+            .fillMaxWidth()
+            .background(RoutineTheme.colors.background)
+            .drawBehind {
+                drawLine(
+                    color = borderColor,
+                    start = Offset(0f, size.height),
+                    end = Offset(size.width, size.height),
+                    strokeWidth = 1.dp.toPx()
+                )
+            }
+            .statusBarsPadding()
+            .padding(horizontal = RoutineTheme.spacing.marginMobile)
+            .padding(top = RoutineTheme.spacing.md, bottom = 14.dp)
+    ) {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            if (onBack != null) {
+                IconButton(
+                    onClick = onBack,
+                    modifier = Modifier.padding(end = 12.dp)
+                ) {
+                    Box(
+                        modifier = Modifier
+                            .size(36.dp)
+                            .background(RoutineTheme.colors.surface2, CircleShape)
+                            .border(1.dp, RoutineTheme.colors.border, CircleShape),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Icon(
+                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                            contentDescription = "Volver",
+                            tint = RoutineTheme.colors.onSurfaceVariant,
+                            modifier = Modifier.size(20.dp)
+                        )
+                    }
+                }
+            }
+            Column {
+                Text(
+                    text = "PERFIL Y AJUSTES",
+                    style = RoutineTheme.typography.labelCaps.copy(letterSpacing = 2.sp),
+                    color = RoutineTheme.colors.primary,
+                    fontWeight = FontWeight.Bold
+                )
+                Spacer(modifier = Modifier.height(4.dp))
+                Text(
+                    text = "Cuenta",
+                    style = RoutineTheme.typography.displayLarge.copy(fontSize = 32.sp),
+                    color = RoutineTheme.colors.onSurface,
+                    fontWeight = FontWeight.Bold
+                )
             }
         }
     }

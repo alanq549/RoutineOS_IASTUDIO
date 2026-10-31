@@ -29,6 +29,7 @@ fun ActivityCatalogScreen(
     uiState: ActivityCatalogUiState,
     onAddActivity: () -> Unit,
     onActivityClick: (String) -> Unit,
+    onEditActivity: ((String) -> Unit)? = null,
     onDeleteActivity: ((String) -> Unit)? = null,
     onSystemSelected: (String?) -> Unit,
     onAddSystem: () -> Unit,
@@ -68,7 +69,7 @@ fun ActivityCatalogScreen(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Text(
-                        text = if (isSheetMode) "Mis Rutinas y Actividades" else "Mis Actividades",
+                        text = "Mis Rutinas",
                         style = RoutineTheme.typography.headlineMedium,
                         color = RoutineTheme.colors.onSurface,
                         fontWeight = FontWeight.Bold
@@ -93,7 +94,7 @@ fun ActivityCatalogScreen(
                         onClick = onAddActivity,
                         colors = ButtonDefaults.buttonColors(
                             containerColor = RoutineTheme.colors.primary,
-                            contentColor = Color.Black
+                            contentColor = RoutineTheme.colors.onPrimary
                         ),
                         shape = RoutineTheme.shapes.small,
                         contentPadding = PaddingValues(horizontal = 10.dp, vertical = 4.dp),
@@ -171,8 +172,9 @@ fun ActivityCatalogScreen(
                         ActivityCard(
                             activity = activity,
                             onClick = { onActivityClick(activity.id) },
-                            onEditClick = { onActivityClick(activity.id) },
-                            onDeleteClick = if (onDeleteActivity != null) { { activityToDelete = activity } } else null
+                            onEditClick = { (onEditActivity ?: onActivityClick).invoke(activity.id) },
+                            onDeleteClick = if (onDeleteActivity != null) { { activityToDelete = activity } } else null,
+                            isSheetMode = isSheetMode
                         )
                         Spacer(modifier = Modifier.height(RoutineTheme.spacing.md))
                     }
@@ -221,7 +223,7 @@ fun ActivityCatalogScreen(
                         },
                         colors = ButtonDefaults.buttonColors(
                             containerColor = RoutineTheme.colors.error,
-                            contentColor = Color.White
+                            contentColor = RoutineTheme.colors.onPrimary
                         ),
                         shape = RoutineTheme.shapes.small
                     ) {

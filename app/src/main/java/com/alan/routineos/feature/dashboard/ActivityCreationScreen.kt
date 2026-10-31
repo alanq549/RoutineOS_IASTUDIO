@@ -75,7 +75,7 @@ fun ActivityCreationScreen(
             
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Text(
-                    text = "NUEVA ACTIVIDAD HABITUAL",
+                    text = "NUEVA RUTINA",
                     style = RoutineTheme.typography.labelCaps.copy(
                         letterSpacing = 2.sp,
                         fontWeight = FontWeight.Black,
@@ -112,7 +112,7 @@ private fun ActivityCreationTopBar(onBackClick: () -> Unit) {
         RoutineTopBar(
             title = {
                 Text(
-                    text = "Nueva Actividad",
+                    text = "Nueva Rutina",
                     style = RoutineTheme.typography.headlineMedium
                 )
             },
@@ -146,7 +146,7 @@ fun ActivityFormFields(
                 Text(
                     text = "ÁREA O CATEGORÍA",
                     style = RoutineTheme.typography.labelCaps.copy(fontSize = 11.sp, letterSpacing = 1.sp),
-                    color = Color.White
+                    color = RoutineTheme.colors.onSurface
                 )
             }
             Spacer(modifier = Modifier.height(16.dp))
@@ -191,7 +191,7 @@ fun ActivityFormFields(
                 Text(
                     text = "TÍTULO",
                     style = RoutineTheme.typography.labelCaps.copy(fontSize = 11.sp, letterSpacing = 1.sp),
-                    color = Color.White
+                    color = RoutineTheme.colors.onSurface
                 )
             }
             Spacer(modifier = Modifier.height(12.dp))
@@ -201,9 +201,9 @@ fun ActivityFormFields(
                 placeholder = { Text("Nombre de la rutina...", fontSize = 16.sp, color = RoutineTheme.colors.onSurfaceVariant.copy(alpha = 0.4f)) },
                 modifier = Modifier
                     .fillMaxWidth()
-                    .clip(RoundedCornerShape(12.dp))
+                    .clip(RoutineTheme.shapes.medium)
                     .background(RoutineTheme.colors.surface1)
-                    .border(1.dp, RoutineTheme.colors.border.copy(alpha = 0.15f), RoundedCornerShape(12.dp)),
+                    .border(1.dp, RoutineTheme.colors.border.copy(alpha = 0.35f), RoutineTheme.shapes.medium),
                 singleLine = true,
                 enabled = enabled,
                 colors = TextFieldDefaults.colors(
@@ -212,7 +212,7 @@ fun ActivityFormFields(
                     unfocusedIndicatorColor = Color.Transparent,
                     focusedIndicatorColor = Color.Transparent
                 ),
-                textStyle = RoutineTheme.typography.bodyBase.copy(fontWeight = FontWeight.Bold)
+                textStyle = RoutineTheme.typography.bodyBase.copy(fontWeight = FontWeight.Bold, color = RoutineTheme.colors.onSurface)
             )
         }
 
@@ -227,19 +227,19 @@ fun ActivityFormFields(
                 Text(
                     text = "PROPÓSITO",
                     style = RoutineTheme.typography.labelCaps.copy(fontSize = 11.sp, letterSpacing = 1.sp),
-                    color = Color.White
+                    color = RoutineTheme.colors.onSurface
                 )
             }
             Spacer(modifier = Modifier.height(12.dp))
             TextField(
                 value = uiState.description,
                 onValueChange = onDescriptionChanged,
-                placeholder = { Text("Consolidar adaptación neuromuscular...", fontSize = 14.sp, color = RoutineTheme.colors.onSurfaceVariant.copy(alpha = 0.3f)) },
+                placeholder = { Text("Descripción o propósito...", fontSize = 14.sp, color = RoutineTheme.colors.onSurfaceVariant.copy(alpha = 0.3f)) },
                 modifier = Modifier
                     .fillMaxWidth()
-                    .clip(RoundedCornerShape(12.dp))
+                    .clip(RoutineTheme.shapes.medium)
                     .background(RoutineTheme.colors.surface1)
-                    .border(1.dp, RoutineTheme.colors.border.copy(alpha = 0.15f), RoundedCornerShape(12.dp)),
+                    .border(1.dp, RoutineTheme.colors.border.copy(alpha = 0.35f), RoutineTheme.shapes.medium),
                 minLines = 3,
                 enabled = enabled,
                 colors = TextFieldDefaults.colors(
@@ -248,7 +248,7 @@ fun ActivityFormFields(
                     unfocusedIndicatorColor = Color.Transparent,
                     focusedIndicatorColor = Color.Transparent
                 ),
-                textStyle = RoutineTheme.typography.bodyBase.copy(fontSize = 14.sp)
+                textStyle = RoutineTheme.typography.bodyBase.copy(fontSize = 14.sp, color = RoutineTheme.colors.onSurface)
             )
         }
     }
@@ -265,9 +265,9 @@ private fun SystemTile(
     modifier: Modifier = Modifier
 ) {
     Surface(
-        color = if (isSelected) color.copy(alpha = 0.1f) else Color(0xFF141B25),
-        shape = RoundedCornerShape(12.dp),
-        border = BorderStroke(1.dp, if (isSelected) color else color.copy(alpha = 0.2f)),
+        color = if (isSelected) color.copy(alpha = 0.12f) else RoutineTheme.colors.surface1,
+        shape = RoutineTheme.shapes.medium,
+        border = BorderStroke(1.dp, if (isSelected) color else RoutineTheme.colors.border.copy(alpha = 0.35f)),
         modifier = modifier.clickable { onClick() }
     ) {
         Column(modifier = Modifier.padding(12.dp)) {
@@ -278,8 +278,8 @@ private fun SystemTile(
                 modifier = Modifier.size(20.dp)
             )
             Spacer(modifier = Modifier.height(12.dp))
-            Text(title, style = RoutineTheme.typography.labelCaps.copy(fontSize = 12.sp), color = Color.White)
-            Text(sub, style = RoutineTheme.typography.labelCaps.copy(fontSize = 9.sp), color = color.copy(alpha = 0.6f))
+            Text(title, style = RoutineTheme.typography.labelCaps.copy(fontSize = 12.sp), color = RoutineTheme.colors.onSurface)
+            Text(sub, style = RoutineTheme.typography.labelCaps.copy(fontSize = 9.sp), color = color.copy(alpha = 0.7f))
         }
     }
 }
@@ -295,23 +295,23 @@ private fun ActivitySaveButton(
         onClick = onClick,
         modifier = modifier
             .fillMaxWidth()
-            .height(58.dp),
+            .height(52.dp),
         enabled = enabled && !isSaving,
-        shape = RoundedCornerShape(18.dp),
+        shape = RoutineTheme.shapes.pill,
         colors = ButtonDefaults.buttonColors(
             containerColor = RoutineTheme.colors.primary,
-            contentColor = Color.Black
+            contentColor = RoutineTheme.colors.onPrimary
         )
     ) {
         if (isSaving) {
             CircularProgressIndicator(
                 modifier = Modifier.size(24.dp),
-                color = Color.Black,
+                color = RoutineTheme.colors.onPrimary,
                 strokeWidth = 2.dp
             )
         } else {
             Text(
-                "GUARDAR DEFINICIÓN",
+                "GUARDAR RUTINA",
                 style = RoutineTheme.typography.labelCaps.copy(fontWeight = FontWeight.Bold, letterSpacing = 1.sp)
             )
         }

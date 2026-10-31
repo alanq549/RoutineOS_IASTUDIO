@@ -46,6 +46,7 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.alan.routineos.core.designsystem.component.RoutineCard
 import com.alan.routineos.core.designsystem.component.RoutineEmptyState
 import com.alan.routineos.core.designsystem.theme.RoutineTheme
 import com.alan.routineos.domain.model.BacklogItem
@@ -95,9 +96,17 @@ fun BacklogPanelSheet(
                     Spacer(modifier = Modifier.width(RoutineTheme.spacing.sm))
                     Column {
                         Text(
-                            text = "PENDIENTES",
+                            text = "INBOX DE INTENCIONES",
                             style = RoutineTheme.typography.labelCaps.copy(
-                                letterSpacing = 1.5.sp,
+                                letterSpacing = 2.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = RoutineTheme.colors.primary
+                            )
+                        )
+                        Spacer(modifier = Modifier.height(2.dp))
+                        Text(
+                            text = "Pendientes",
+                            style = RoutineTheme.typography.headlineMedium.copy(
                                 fontWeight = FontWeight.Bold
                             ),
                             color = RoutineTheme.colors.onSurface
@@ -115,13 +124,14 @@ fun BacklogPanelSheet(
 
                 Surface(
                     color = RoutineTheme.colors.surface2,
-                    shape = RoutineTheme.shapes.small
+                    shape = RoutineTheme.shapes.pill,
+                    border = BorderStroke(1.dp, RoutineTheme.colors.border.copy(alpha = 0.3f))
                 ) {
                     Text(
                         text = "${openBacklogItems.size} POR HACER",
-                        style = RoutineTheme.typography.captionTag,
+                        style = RoutineTheme.typography.captionTag.copy(fontWeight = FontWeight.Bold),
                         color = RoutineTheme.colors.primary,
-                        modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
+                        modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp)
                     )
                 }
             }
@@ -161,9 +171,10 @@ fun BacklogPanelSheet(
                     }
                 }),
                 singleLine = true,
+                shape = RoutineTheme.shapes.medium,
                 colors = OutlinedTextFieldDefaults.colors(
                     focusedBorderColor = RoutineTheme.colors.primary,
-                    unfocusedBorderColor = RoutineTheme.colors.border,
+                    unfocusedBorderColor = RoutineTheme.colors.border.copy(alpha = 0.4f),
                     focusedContainerColor = RoutineTheme.colors.surface2,
                     unfocusedContainerColor = RoutineTheme.colors.surface1
                 )
@@ -208,14 +219,12 @@ private fun BacklogItemRow(
     onAssign: () -> Unit,
     onDelete: () -> Unit
 ) {
-    Surface(
-        color = RoutineTheme.colors.surface2,
-        shape = RoutineTheme.shapes.small,
-        border = BorderStroke(1.dp, RoutineTheme.colors.border.copy(alpha = 0.4f)),
+    RoutineCard(
+        containerColor = RoutineTheme.colors.surface1,
         modifier = Modifier.fillMaxWidth()
     ) {
         Row(
-            modifier = Modifier.padding(horizontal = 12.dp, vertical = 10.dp),
+            modifier = Modifier.padding(horizontal = 14.dp, vertical = 12.dp),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
@@ -240,8 +249,9 @@ private fun BacklogItemRow(
                     containerColor = RoutineTheme.colors.primary.copy(alpha = 0.15f),
                     contentColor = RoutineTheme.colors.primary
                 ),
-                shape = RoundedCornerShape(6.dp),
-                contentPadding = PaddingValues(horizontal = 10.dp, vertical = 4.dp),
+                shape = RoutineTheme.shapes.pill,
+                border = BorderStroke(1.dp, RoutineTheme.colors.primary.copy(alpha = 0.3f)),
+                contentPadding = PaddingValues(horizontal = 12.dp, vertical = 4.dp),
                 modifier = Modifier.height(32.dp)
             ) {
                 Icon(

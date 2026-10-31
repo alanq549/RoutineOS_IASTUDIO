@@ -41,9 +41,17 @@ fun MonthlyCycleView(
         // Range & Summary
         Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.fillMaxWidth()) {
             Text(
-                text = monthStats.yearMonth.month.getDisplayName(java.time.format.TextStyle.FULL, Locale("es", "ES")).uppercase(),
+                text = "CICLO MENSUAL",
+                style = RoutineTheme.typography.labelCaps.copy(letterSpacing = 1.5.sp),
+                color = RoutineTheme.colors.primary,
+                fontWeight = FontWeight.Bold
+            )
+            Spacer(modifier = Modifier.height(2.dp))
+            Text(
+                text = "${monthStats.yearMonth.month.getDisplayName(java.time.format.TextStyle.FULL, Locale("es", "ES")).uppercase()} ${monthStats.yearMonth.year}",
                 style = RoutineTheme.typography.headlineMedium, 
-                color = RoutineTheme.colors.onSurface
+                color = RoutineTheme.colors.onSurface,
+                fontWeight = FontWeight.Bold
             )
         }
 
@@ -133,23 +141,37 @@ private fun WeeklyBreakdownList(
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .clip(RoutineTheme.shapes.small)
-                    .background(if (isSelected) RoutineTheme.colors.primary.copy(alpha = 0.1f) else RoutineTheme.colors.surface2)
-                    .border(1.dp, if (isSelected) RoutineTheme.colors.primary.copy(alpha = 0.3f) else Color.Transparent, RoutineTheme.shapes.small)
+                    .clip(RoutineTheme.shapes.medium)
+                    .background(if (isSelected) RoutineTheme.colors.surface2 else RoutineTheme.colors.surface1)
+                    .border(
+                        1.dp,
+                        if (isSelected) RoutineTheme.colors.primary.copy(alpha = 0.4f) else RoutineTheme.colors.border.copy(alpha = 0.35f),
+                        RoutineTheme.shapes.medium
+                    )
                     .clickable { onWeekSelected(week.startOfWeek) }
-                    .padding(16.dp),
+                    .padding(horizontal = 16.dp, vertical = 14.dp),
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Text(
-                    text = "Semana del ${week.startOfWeek.dayOfMonth}", 
-                    style = RoutineTheme.typography.bodyBase, 
-                    fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal, 
-                    color = if (isSelected) RoutineTheme.colors.primary else RoutineTheme.colors.onSurface
-                )
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    Box(
+                        modifier = Modifier
+                            .size(6.dp)
+                            .clip(RoutineTheme.shapes.pill)
+                            .background(if (isSelected) RoutineTheme.colors.primary else RoutineTheme.colors.onSurfaceVariant.copy(alpha = 0.4f))
+                    )
+                    Text(
+                        text = "Semana del ${week.startOfWeek.dayOfMonth}", 
+                        style = RoutineTheme.typography.bodyBase.copy(fontWeight = FontWeight.SemiBold), 
+                        color = if (isSelected) RoutineTheme.colors.primary else RoutineTheme.colors.onSurface
+                    )
+                }
                 Text(
                     text = week.completionRate?.let { "${(it * 100).toInt()}%" } ?: "0%", 
-                    style = RoutineTheme.typography.dataLarge.copy(fontSize = 13.sp), 
+                    style = RoutineTheme.typography.dataLarge.copy(fontSize = 14.sp, fontWeight = FontWeight.Bold), 
                     color = if (isSelected) RoutineTheme.colors.primary else RoutineTheme.colors.onSurfaceVariant
                 )
             }

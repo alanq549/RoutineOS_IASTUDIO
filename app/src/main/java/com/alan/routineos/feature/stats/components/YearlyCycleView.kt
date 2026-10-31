@@ -40,7 +40,14 @@ fun YearlyCycleView(
     ) {
         // Year Header
         Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.fillMaxWidth()) {
-            Text(year, style = RoutineTheme.typography.headlineMedium, color = RoutineTheme.colors.onSurface)
+            Text(
+                text = "CICLO ANUAL",
+                style = RoutineTheme.typography.labelCaps.copy(letterSpacing = 1.5.sp),
+                color = RoutineTheme.colors.primary,
+                fontWeight = FontWeight.Bold
+            )
+            Spacer(modifier = Modifier.height(2.dp))
+            Text(year, style = RoutineTheme.typography.headlineMedium, color = RoutineTheme.colors.onSurface, fontWeight = FontWeight.Bold)
         }
 
         // Yearly Grid (3x4)
@@ -104,8 +111,12 @@ private fun MonthCycleItem(
     Column(
         modifier = modifier
             .clip(RoutineTheme.shapes.medium)
-            .background(if (isSelected) RoutineTheme.colors.primary.copy(alpha = 0.1f) else RoutineTheme.colors.surface1)
-            .border(1.dp, if (isSelected) RoutineTheme.colors.primary.copy(alpha = 0.3f) else Color.Transparent, RoutineTheme.shapes.medium)
+            .background(if (isSelected) RoutineTheme.colors.surface2 else RoutineTheme.colors.surface1)
+            .border(
+                1.dp,
+                if (isSelected) RoutineTheme.colors.primary.copy(alpha = 0.4f) else RoutineTheme.colors.border.copy(alpha = 0.35f),
+                RoutineTheme.shapes.medium
+            )
             .clickable(onClick = onClick)
             .padding(12.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
@@ -143,7 +154,7 @@ private fun MonthCycleItem(
 @Composable
 private fun MonthSummaryCard(month: MonthlyStats) {
     RoutineCard(modifier = Modifier.fillMaxWidth()) {
-        Column(modifier = Modifier.padding(24.dp)) {
+        Column(modifier = Modifier.padding(RoutineTheme.spacing.lg)) {
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
@@ -151,9 +162,11 @@ private fun MonthSummaryCard(month: MonthlyStats) {
             ) {
                 Column {
                     Text(
-                        text = month.yearMonth.month.getDisplayName(TextStyle.FULL, Locale.getDefault()).replaceFirstChar { it.uppercase() }, 
-                        style = RoutineTheme.typography.headlineMedium
+                        text = month.yearMonth.month.getDisplayName(TextStyle.FULL, Locale("es", "ES")).replaceFirstChar { it.uppercase() }, 
+                        style = RoutineTheme.typography.headlineMedium,
+                        fontWeight = FontWeight.Bold
                     )
+                    Spacer(modifier = Modifier.height(4.dp))
                     val activeDays = month.weeklyStats.sumOf { w -> w.dailyStats.count { it.occurrences.isNotEmpty() } }
                     Text(
                         text = "$activeDays días con actividad", 
@@ -161,11 +174,18 @@ private fun MonthSummaryCard(month: MonthlyStats) {
                         color = RoutineTheme.colors.onSurfaceVariant
                     )
                 }
-                Text(
-                    text = "ADHERENCIA ${month.completionRate?.let { (it * 100).toInt() } ?: 0}%", 
-                    style = RoutineTheme.typography.dataLarge.copy(fontSize = 12.sp), 
-                    color = RoutineTheme.colors.primary
-                )
+                Box(
+                    modifier = Modifier
+                        .background(RoutineTheme.colors.primary.copy(alpha = 0.12f), RoutineTheme.shapes.pill)
+                        .border(1.dp, RoutineTheme.colors.primary.copy(alpha = 0.3f), RoutineTheme.shapes.pill)
+                        .padding(horizontal = 12.dp, vertical = 6.dp)
+                ) {
+                    Text(
+                        text = "${month.completionRate?.let { (it * 100).toInt() } ?: 0}%", 
+                        style = RoutineTheme.typography.dataLarge.copy(fontSize = 13.sp, fontWeight = FontWeight.Bold), 
+                        color = RoutineTheme.colors.primary
+                    )
+                }
             }
         }
     }

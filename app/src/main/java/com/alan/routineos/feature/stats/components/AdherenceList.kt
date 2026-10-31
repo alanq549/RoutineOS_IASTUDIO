@@ -16,6 +16,8 @@ import com.alan.routineos.core.designsystem.theme.RoutineTheme
 import com.alan.routineos.domain.model.SystemAdherence
 import com.alan.routineos.domain.model.ActivityAdherence
 
+import com.alan.routineos.core.designsystem.component.RoutineCard
+
 @Composable
 fun AdherenceList(
     title: String = "Adherencia por Sistema",
@@ -79,10 +81,8 @@ private fun BaseAdherenceRow(
     missedRate: Float?,
     spontaneousCount: Int = 0
 ) {
-    Surface(
-        color = RoutineTheme.colors.surface1,
-        shape = RoutineTheme.shapes.medium,
-        border = BorderStroke(1.dp, RoutineTheme.colors.border),
+    RoutineCard(
+        containerColor = RoutineTheme.colors.surface1,
         modifier = Modifier.fillMaxWidth()
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
@@ -98,7 +98,7 @@ private fun BaseAdherenceRow(
                 )
                 Text(
                     text = completionRate?.let { "${(it * 100).toInt()}%" } ?: "N/A",
-                    style = RoutineTheme.typography.dataLarge,
+                    style = RoutineTheme.typography.dataLarge.copy(fontSize = 14.sp, fontWeight = FontWeight.Bold),
                     color = RoutineTheme.colors.primary
                 )
             }
@@ -110,8 +110,8 @@ private fun BaseAdherenceRow(
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(6.dp)
-                    .clip(RoundedCornerShape(3.dp))
-                    .background(RoutineTheme.colors.surface3)
+                    .clip(RoutineTheme.shapes.pill)
+                    .background(RoutineTheme.colors.surface2)
             ) {
                 val completed = completionRate ?: 0f
                 val omitted = omittedRate ?: 0f
@@ -121,20 +121,18 @@ private fun BaseAdherenceRow(
                 if (total > 0f) {
                     if (completed > 0f) Box(modifier = Modifier.weight(completed).fillMaxHeight().background(RoutineTheme.colors.primary))
                     if (omitted > 0f) Box(modifier = Modifier.weight(omitted).fillMaxHeight().background(RoutineTheme.colors.surface3))
-                    // Subtle glass tone for Missed tasks in adherence list
-                    if (missed > 0f) Box(modifier = Modifier.weight(missed).fillMaxHeight().background(RoutineTheme.colors.onSurface.copy(alpha = 0.05f)))
+                    if (missed > 0f) Box(modifier = Modifier.weight(missed).fillMaxHeight().background(RoutineTheme.colors.onSurfaceVariant.copy(alpha = 0.2f)))
                 }
             }
 
-            Spacer(modifier = Modifier.height(8.dp))
+            Spacer(modifier = Modifier.height(10.dp))
 
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(16.dp)
             ) {
-                MetricLegend(label = "Hecho", color = RoutineTheme.colors.primary)
-                MetricLegend(label = "Omitido", color = RoutineTheme.colors.surface3)
-                MetricLegend(label = "No realizadas", color = RoutineTheme.colors.onSurface.copy(alpha = 0.05f))
+                MetricLegend(label = "Completadas", color = RoutineTheme.colors.primary)
+                MetricLegend(label = "Omitidas", color = RoutineTheme.colors.surface3)
                 if (spontaneousCount > 0) {
                     MetricLegend(label = "Espontáneas ($spontaneousCount)", color = RoutineTheme.colors.tertiary)
                 }
@@ -146,8 +144,8 @@ private fun BaseAdherenceRow(
 @Composable
 private fun MetricLegend(label: String, color: androidx.compose.ui.graphics.Color) {
     Row(verticalAlignment = Alignment.CenterVertically) {
-        Box(modifier = Modifier.size(8.dp).clip(RoundedCornerShape(2.dp)).background(color))
-        Spacer(modifier = Modifier.width(4.dp))
+        Box(modifier = Modifier.size(8.dp).clip(RoutineTheme.shapes.pill).background(color))
+        Spacer(modifier = Modifier.width(6.dp))
         Text(
             text = label,
             style = RoutineTheme.typography.labelCaps.copy(fontSize = 10.sp),

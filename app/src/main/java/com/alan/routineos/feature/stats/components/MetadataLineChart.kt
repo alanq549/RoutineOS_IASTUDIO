@@ -14,6 +14,7 @@ import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.alan.routineos.core.designsystem.theme.RoutineTheme
+import com.alan.routineos.core.designsystem.component.RoutineCard
 import com.alan.routineos.domain.model.TrendSeries
 
 @Composable
@@ -21,20 +22,18 @@ fun MetadataLineChart(
     series: TrendSeries,
     modifier: Modifier = Modifier
 ) {
-    Column(
-        modifier = modifier
-            .fillMaxWidth()
-            .padding(16.dp)
-            .background(RoutineTheme.colors.surface2, RoutineTheme.shapes.medium)
-            .padding(16.dp)
+    RoutineCard(
+        containerColor = RoutineTheme.colors.surface1,
+        modifier = modifier.fillMaxWidth()
     ) {
-        Text(
-            text = "Evolución: ${series.fieldName}",
-            style = RoutineTheme.typography.headlineMedium,
-            color = RoutineTheme.colors.onSurface
-        )
-        
-        Spacer(modifier = Modifier.height(16.dp))
+        Column(modifier = Modifier.padding(RoutineTheme.spacing.lg)) {
+            Text(
+                text = "EVOLUCIÓN: ${series.fieldName.uppercase()}",
+                style = RoutineTheme.typography.labelCaps.copy(letterSpacing = 1.sp),
+                color = RoutineTheme.colors.primary
+            )
+            
+            Spacer(modifier = Modifier.height(16.dp))
 
         if (series.values.isEmpty()) {
             Box(
@@ -81,4 +80,5 @@ fun MetadataLineChart(
             }
         }
     }
+}
 }
