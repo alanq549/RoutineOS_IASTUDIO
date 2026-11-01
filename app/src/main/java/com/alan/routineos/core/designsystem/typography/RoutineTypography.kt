@@ -58,6 +58,13 @@ data class RoutineTypography(
         lineHeight = 28.sp,
         letterSpacing = (-0.01).sp
     ),
+    val headlineSmall: TextStyle = TextStyle(
+        fontFamily = InterFamily,
+        fontWeight = FontWeight.SemiBold,
+        fontSize = 16.sp,
+        lineHeight = 24.sp,
+        letterSpacing = (-0.01).sp
+    ),
     val bodyBase: TextStyle = TextStyle(
         fontFamily = InterFamily,
         fontWeight = FontWeight.Normal,
@@ -98,6 +105,20 @@ data class RoutineTypography(
         fontSize = 10.sp,
         lineHeight = 14.sp,
         letterSpacing = 1.sp
+    ),
+    val codeSm: TextStyle = TextStyle(
+        fontFamily = JetBrainsMonoFamily,
+        fontWeight = FontWeight.Medium,
+        fontSize = 11.sp,
+        lineHeight = 16.sp,
+        letterSpacing = 0.02.sp
+    ),
+    val codeLg: TextStyle = TextStyle(
+        fontFamily = JetBrainsMonoFamily,
+        fontWeight = FontWeight.Medium,
+        fontSize = 14.sp,
+        lineHeight = 20.sp,
+        letterSpacing = (-0.02).sp
     )
 )
 

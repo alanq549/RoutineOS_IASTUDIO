@@ -7,6 +7,7 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Insights
@@ -15,13 +16,13 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.draw.clip
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.alan.routineos.core.designsystem.component.RoutineCard
 import com.alan.routineos.core.designsystem.component.RoutineEmptyState
 import com.alan.routineos.core.designsystem.component.RoutineScaffold
@@ -73,7 +74,7 @@ private fun StatsHeader(
     modifier: Modifier = Modifier,
     onNavigateToAccount: (() -> Unit)? = null
 ) {
-    val borderColor = RoutineTheme.colors.border.copy(alpha = 0.3f)
+    val borderColor = RoutineTheme.colors.border.copy(alpha = 0.4f)
 
     Box(
         modifier = modifier
@@ -89,7 +90,7 @@ private fun StatsHeader(
             }
             .statusBarsPadding()
             .padding(horizontal = RoutineTheme.spacing.marginMobile)
-            .padding(top = RoutineTheme.spacing.md, bottom = 14.dp)
+            .padding(top = RoutineTheme.spacing.md, bottom = 12.dp)
     ) {
         Column(modifier = Modifier.fillMaxWidth()) {
             Row(
@@ -98,16 +99,30 @@ private fun StatsHeader(
                 verticalAlignment = Alignment.Top
             ) {
                 Column {
-                    Text(
-                        text = "MÉTRICAS Y RENDIMIENTO",
-                        style = RoutineTheme.typography.labelCaps.copy(letterSpacing = 2.sp),
-                        color = RoutineTheme.colors.primary,
-                        fontWeight = FontWeight.Bold
-                    )
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Box(
+                            modifier = Modifier
+                                .size(6.dp)
+                                .background(RoutineTheme.colors.primary, CircleShape)
+                        )
+                        Spacer(modifier = Modifier.width(6.dp))
+                        Text(
+                            text = "MÉTRICAS Y RENDIMIENTO",
+                            style = RoutineTheme.typography.labelCaps.copy(letterSpacing = 1.5.sp, fontSize = 10.sp),
+                            color = RoutineTheme.colors.primary,
+                            fontWeight = FontWeight.Bold
+                        )
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text(
+                            text = "// SYS_TELEMETRY",
+                            style = RoutineTheme.typography.codeSm.copy(fontSize = 9.sp),
+                            color = RoutineTheme.colors.onSurfaceVariant.copy(alpha = 0.5f)
+                        )
+                    }
                     Spacer(modifier = Modifier.height(4.dp))
                     Text(
                         text = "Estadísticas",
-                        style = RoutineTheme.typography.displayLarge.copy(fontSize = 32.sp),
+                        style = RoutineTheme.typography.displayLarge.copy(fontSize = 30.sp),
                         color = RoutineTheme.colors.onSurface,
                         fontWeight = FontWeight.Bold
                     )
@@ -154,25 +169,27 @@ private fun StatsScrollableContent(uiState: StatsUiState) {
             .verticalScroll(rememberScrollState())
             .padding(horizontal = RoutineTheme.spacing.marginMobile)
             .padding(top = RoutineTheme.spacing.md, bottom = RoutineTheme.spacing.xl),
-        verticalArrangement = Arrangement.spacedBy(20.dp)
+        verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
-        // COMPACT HUD METRICS MATRIX (Stitch V3 Technical Standard)
+        // OBSIDIAN HUD METRICS MATRIX (2x2 Grid)
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.spacedBy(10.dp)
         ) {
             HudMetricCard(
-                label = "Cumplimiento",
+                label = "CUMPLIMIENTO",
                 value = snapshot.completionRate?.let { "${(it * 100).toInt()}%" } ?: "0%",
                 accent = RoutineTheme.colors.primary,
+                codeHint = "ACC_RATE",
                 modifier = Modifier.weight(1f)
             )
             val activeDaysCount = snapshot.dailyStats.count { it.completedCount > 0 }
             val totalDaysCount = snapshot.dailyStats.size.coerceAtLeast(1)
             HudMetricCard(
-                label = "Días Activos",
+                label = "DÍAS ACTIVOS",
                 value = "$activeDaysCount de $totalDaysCount",
                 accent = RoutineTheme.colors.primary,
+                codeHint = "DAYS_ACT",
                 modifier = Modifier.weight(1f)
             )
         }
@@ -182,15 +199,17 @@ private fun StatsScrollableContent(uiState: StatsUiState) {
             horizontalArrangement = Arrangement.spacedBy(10.dp)
         ) {
             HudMetricCard(
-                label = "Planificado",
+                label = "CARGA PLANIFICADA",
                 value = snapshot.plannedHours?.let { "${it.toInt()} h" } ?: "0 h",
                 accent = RoutineTheme.colors.onSurface,
+                codeHint = "PLAN_HRS",
                 modifier = Modifier.weight(1f)
             )
             HudMetricCard(
-                label = "Ejecutado",
+                label = "TIEMPO EJECUTADO",
                 value = snapshot.executedHours?.let { "${it.toInt()} h" } ?: "0 h",
                 accent = RoutineTheme.colors.primary,
+                codeHint = "EXEC_HRS",
                 modifier = Modifier.weight(1f)
             )
         }
@@ -199,20 +218,28 @@ private fun StatsScrollableContent(uiState: StatsUiState) {
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .background(RoutineTheme.colors.surface1, RoutineTheme.shapes.small)
-                    .border(1.dp, RoutineTheme.colors.border.copy(alpha = 0.35f), RoutineTheme.shapes.small)
+                    .background(RoutineTheme.colors.surface1, RoundedCornerShape(8.dp))
+                    .border(1.dp, RoutineTheme.colors.border.copy(alpha = 0.35f), RoundedCornerShape(8.dp))
                     .padding(horizontal = 14.dp, vertical = 10.dp),
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Box(
+                        modifier = Modifier
+                            .size(5.dp)
+                            .background(RoutineTheme.colors.primary, CircleShape)
+                    )
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text(
+                        text = "COMPROMISOS A TIEMPO",
+                        style = RoutineTheme.typography.codeSm.copy(fontSize = 11.sp, letterSpacing = 1.sp, fontWeight = FontWeight.Bold),
+                        color = RoutineTheme.colors.onSurfaceVariant
+                    )
+                }
                 Text(
-                    text = "COMPROMISOS A TIEMPO",
-                    style = RoutineTheme.typography.labelCaps.copy(fontSize = 11.sp, letterSpacing = 1.sp),
-                    color = RoutineTheme.colors.onSurfaceVariant
-                )
-                Text(
-                    text = "${snapshot.deadlinesMet} de ${snapshot.deadlinesTotal}",
-                    style = RoutineTheme.typography.dataMedium.copy(fontWeight = FontWeight.Bold),
+                    text = "${snapshot.deadlinesMet} / ${snapshot.deadlinesTotal}",
+                    style = RoutineTheme.typography.dataMedium.copy(fontWeight = FontWeight.Bold, fontSize = 13.sp),
                     color = if (snapshot.deadlinesMet == snapshot.deadlinesTotal) RoutineTheme.colors.primary else RoutineTheme.colors.warning
                 )
             }
@@ -228,7 +255,7 @@ private fun StatsScrollableContent(uiState: StatsUiState) {
         ) { period ->
             when (period) {
                 StatsPeriod.MONTH -> {
-                    Column(verticalArrangement = Arrangement.spacedBy(20.dp)) {
+                    Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
                         snapshot.monthlyStats.firstOrNull()?.let { 
                             MonthlyCycleView(monthStats = it)
                         }
@@ -241,7 +268,7 @@ private fun StatsScrollableContent(uiState: StatsUiState) {
                     }
                 }
                 StatsPeriod.YEAR -> {
-                    Column(verticalArrangement = Arrangement.spacedBy(20.dp)) {
+                    Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
                         YearlyCycleView(year = "2026", months = snapshot.monthlyStats)
                         if (snapshot.systemAdherence.isNotEmpty()) {
                             AdherenceList(
@@ -252,7 +279,6 @@ private fun StatsScrollableContent(uiState: StatsUiState) {
                     }
                 }
                 else -> {
-                    // Weekly Rhythm is the primary executive mode
                     WeeklyRhythmView(days = snapshot.dailyStats)
                 }
             }
@@ -265,33 +291,55 @@ private fun HudMetricCard(
     label: String, 
     value: String, 
     modifier: Modifier = Modifier,
-    accent: Color = RoutineTheme.colors.primary
+    accent: Color = RoutineTheme.colors.primary,
+    codeHint: String = ""
 ) {
-    RoutineCard(
-        containerColor = RoutineTheme.colors.surface1,
+    Surface(
+        color = RoutineTheme.colors.surface1,
+        shape = RoundedCornerShape(8.dp),
+        border = androidx.compose.foundation.BorderStroke(1.dp, RoutineTheme.colors.border),
         modifier = modifier
     ) {
         Column(modifier = Modifier.padding(14.dp)) {
             Row(
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(6.dp)
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
             ) {
-                Box(
-                    modifier = Modifier
-                        .size(5.dp)
-                        .clip(RoutineTheme.shapes.pill)
-                        .background(accent)
-                )
-                Text(
-                    text = label.uppercase(),
-                    style = RoutineTheme.typography.labelCaps.copy(fontSize = 10.sp, letterSpacing = 1.sp),
-                    color = RoutineTheme.colors.onSurfaceVariant.copy(alpha = 0.8f)
-                )
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(6.dp)
+                ) {
+                    Box(
+                        modifier = Modifier
+                            .size(5.dp)
+                            .background(accent, CircleShape)
+                    )
+                    Text(
+                        text = label,
+                        style = RoutineTheme.typography.codeSm.copy(
+                            fontSize = 9.sp, 
+                            letterSpacing = 1.sp, 
+                            fontWeight = FontWeight.Bold
+                        ),
+                        color = RoutineTheme.colors.onSurfaceVariant.copy(alpha = 0.7f)
+                    )
+                }
+                if (codeHint.isNotBlank()) {
+                    Text(
+                        text = codeHint,
+                        style = RoutineTheme.typography.codeSm.copy(fontSize = 8.sp, color = RoutineTheme.colors.border)
+                    )
+                }
             }
-            Spacer(modifier = Modifier.height(6.dp))
+            Spacer(modifier = Modifier.height(8.dp))
             Text(
                 text = value,
-                style = RoutineTheme.typography.dataHero.copy(fontSize = 22.sp, fontWeight = FontWeight.Bold),
+                style = RoutineTheme.typography.dataHero.copy(
+                    fontSize = 20.sp, 
+                    fontWeight = FontWeight.Bold,
+                    letterSpacing = (-0.02).sp
+                ),
                 color = accent
             )
         }

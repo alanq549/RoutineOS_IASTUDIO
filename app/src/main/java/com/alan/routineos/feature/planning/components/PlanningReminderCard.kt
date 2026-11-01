@@ -3,15 +3,8 @@ package com.alan.routineos.feature.planning.components
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Notifications
@@ -27,6 +20,7 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.alan.routineos.core.designsystem.theme.RoutineTheme
@@ -35,9 +29,8 @@ import com.alan.routineos.feature.today.model.PlanningItemType
 import com.alan.routineos.feature.today.model.TodayTimelineUiModel
 
 /**
- * Card genérica para ítems "flotantes" (sin hora fija): Recordatorio y Tarea.
- * NO usa spine ni gutter de tiempo — standalone, pensada para la sección
- * superior de Planning y para no-agobiar la vista.
+ * Card para ítems "flotantes" (sin hora fija): Recordatorio y Tarea.
+ * Adopta el riel lateral de acento semántico de Stitch V3.
  */
 @Composable
 private fun FloatingItemCard(
@@ -60,16 +53,36 @@ private fun FloatingItemCard(
             .fillMaxWidth()
             .clip(RoutineTheme.shapes.medium)
             .background(RoutineTheme.colors.surface1)
-            .border(1.dp, semanticColor.copy(alpha = 0.25f), RoutineTheme.shapes.medium)
+            .border(1.dp, semanticColor.copy(alpha = 0.28f), RoutineTheme.shapes.medium)
             .clickable { onAction(item.id, "EDIT_SPONTANEOUS") }
-            .padding(horizontal = 14.dp, vertical = 12.dp)
     ) {
-        Row(verticalAlignment = Alignment.CenterVertically) {
+        // LEFT ACCENT GLOW RAIL
+        Box(
+            modifier = Modifier
+                .width(4.dp)
+                .fillMaxHeight()
+                .align(Alignment.CenterStart)
+                .background(
+                    Brush.verticalGradient(
+                        listOf(
+                            semanticColor.copy(alpha = 0.9f),
+                            semanticColor.copy(alpha = 0.4f)
+                        )
+                    )
+                )
+        )
+
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(start = 14.dp, top = 12.dp, end = 12.dp, bottom = 12.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
             Box(
                 modifier = Modifier
-                    .size(36.dp)
-                    .background(semanticColor.copy(alpha = 0.1f), RoutineTheme.shapes.small)
-                    .border(1.dp, semanticColor.copy(alpha = 0.2f), RoutineTheme.shapes.small),
+                    .size(38.dp)
+                    .background(semanticColor.copy(alpha = 0.12f), RoutineTheme.shapes.small)
+                    .border(1.dp, semanticColor.copy(alpha = 0.3f), RoutineTheme.shapes.small),
                 contentAlignment = Alignment.Center
             ) {
                 Icon(icon, null, modifier = Modifier.size(18.dp), tint = semanticColor)
@@ -79,30 +92,41 @@ private fun FloatingItemCard(
 
             Column(modifier = Modifier.weight(1f)) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    Surface(
-                        color = semanticColor.copy(alpha = 0.15f),
-                        shape = RoutineTheme.shapes.small
-                    ) {
-                        Text(
-                            badgeText,
-                            style = RoutineTheme.typography.labelCaps.copy(
-                                fontSize = 9.sp,
-                                color = semanticColor,
-                                fontWeight = FontWeight.Bold
-                            ),
-                            modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
+                    Box(
+                        modifier = Modifier
+                            .size(5.dp)
+                            .background(semanticColor, CircleShape)
+                    )
+                    Spacer(modifier = Modifier.width(6.dp))
+                    Text(
+                        badgeText,
+                        style = RoutineTheme.typography.labelCaps.copy(
+                            fontSize = 9.sp,
+                            color = semanticColor,
+                            fontWeight = FontWeight.Bold,
+                            letterSpacing = 1.sp
                         )
-                    }
+                    )
                 }
                 Spacer(modifier = Modifier.height(2.dp))
                 Text(
                     text = item.title,
                     style = RoutineTheme.typography.bodyBase.copy(
                         fontSize = 15.sp,
-                        fontWeight = FontWeight.SemiBold
+                        fontWeight = FontWeight.Bold
                     ),
                     color = RoutineTheme.colors.onSurface
                 )
+                if (item.context?.note?.content?.isNotBlank() == true) {
+                    Spacer(modifier = Modifier.height(3.dp))
+                    Text(
+                        text = item.context.note.content,
+                        style = RoutineTheme.typography.bodyBase.copy(fontSize = 11.sp),
+                        color = RoutineTheme.colors.onSurfaceVariant.copy(alpha = 0.7f),
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
+                    )
+                }
             }
             ActionMenu(item, isOmitted, isModified) { onAction(item.id, it) }
         }

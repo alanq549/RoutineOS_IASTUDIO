@@ -15,7 +15,22 @@ fun AccountRoute(
 
     AccountScreen(
         uiState = uiState,
-        onLogout = viewModel::onLogout,
+        onEditProfileClick = viewModel::onEditProfileClick,
+        onSaveProfile = viewModel::onSaveProfile,
+        onSettingClick = viewModel::onSettingClick,
+        onToggleCalendarProject = viewModel::onToggleCalendarProject,
+        onToggleCalendarConflicts = viewModel::onToggleCalendarConflicts,
+        onSyncCalendarNow = viewModel::onSyncCalendarNow,
+        onDisconnectCalendar = viewModel::onDisconnectCalendar,
+        onConnectCalendar = viewModel::onConnectCalendar,
+        onSelectAccent = viewModel::onUpdateAppearance,
+        onSaveNotifications = viewModel::onUpdateNotifications,
+        onExportData = viewModel::onExportData,
+        onClearHistory = viewModel::onClearHistory,
+        onLogoutClick = viewModel::onLogoutClick,
+        onConfirmLogout = viewModel::onConfirmLogout,
+        onDismissDialog = viewModel::onDismissDialog,
+        onClearToast = viewModel::onClearToast,
         onBack = onBack,
         bottomBar = bottomBar
     )

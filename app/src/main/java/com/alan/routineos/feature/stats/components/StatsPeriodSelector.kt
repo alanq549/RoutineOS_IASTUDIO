@@ -4,6 +4,8 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -16,6 +18,10 @@ import androidx.compose.ui.unit.sp
 import com.alan.routineos.core.designsystem.theme.RoutineTheme
 import com.alan.routineos.feature.stats.model.StatsPeriod
 
+/**
+ * Selector de horizonte temporal bajo el estándar Obsidian Technical Architecture.
+ * Geometría semi-afilada (8px / 4px), tipografía JetBrains Mono y bordes nítidos de 1px.
+ */
 @Composable
 fun StatsPeriodSelector(
     selectedPeriod: StatsPeriod,
@@ -25,30 +31,32 @@ fun StatsPeriodSelector(
     Column(
         modifier = modifier,
         horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.spacedBy(10.dp)
+        verticalArrangement = Arrangement.spacedBy(8.dp)
     ) {
+        // Obsidian Segmented Control Bar
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .background(RoutineTheme.colors.surface1, RoutineTheme.shapes.pill)
-                .border(1.dp, RoutineTheme.colors.border.copy(alpha = 0.4f), RoutineTheme.shapes.pill)
+                .clip(RoutineTheme.shapes.small)
+                .background(RoutineTheme.colors.surface1)
+                .border(1.dp, RoutineTheme.colors.border, RoutineTheme.shapes.small)
                 .padding(3.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            StatsPeriodButton(
-                title = "Semana",
+            ObsidianPeriodButton(
+                title = "SEMANA",
                 isSelected = selectedPeriod == StatsPeriod.WEEK || selectedPeriod == StatsPeriod.DAY,
                 onClick = { onPeriodSelected(StatsPeriod.WEEK) },
                 modifier = Modifier.weight(1f)
             )
-            StatsPeriodButton(
-                title = "Mes",
+            ObsidianPeriodButton(
+                title = "MES",
                 isSelected = selectedPeriod == StatsPeriod.MONTH,
                 onClick = { onPeriodSelected(StatsPeriod.MONTH) },
                 modifier = Modifier.weight(1f)
             )
-            StatsPeriodButton(
-                title = "Año",
+            ObsidianPeriodButton(
+                title = "AÑO",
                 isSelected = selectedPeriod == StatsPeriod.YEAR,
                 onClick = { onPeriodSelected(StatsPeriod.YEAR) },
                 modifier = Modifier.weight(1f)
@@ -56,45 +64,51 @@ fun StatsPeriodSelector(
         }
 
         val rangeLabel = when (selectedPeriod) {
-            StatsPeriod.MONTH -> "Ciclo Mensual · Visión Consolidada"
-            StatsPeriod.YEAR -> "Ciclo Anual · Histórico"
-            else -> "Ritmo Semanal · Flujo Operativo"
+            StatsPeriod.MONTH -> "SYS_CYCLE // CICLO MENSUAL CONSOLIDADO"
+            StatsPeriod.YEAR -> "SYS_HISTORY // HISTÓRICO ANUAL"
+            else -> "SYS_RHYTHM // RITMO OPERATIVO SEMANAL"
         }
 
         Row(
             verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(8.dp)
+            horizontalArrangement = Arrangement.spacedBy(6.dp)
         ) {
             Box(
                 modifier = Modifier
-                    .size(5.dp)
-                    .clip(RoutineTheme.shapes.pill)
-                    .background(RoutineTheme.colors.primary)
+                    .size(6.dp)
+                    .background(RoutineTheme.colors.primary, CircleShape)
             )
             Text(
-                text = rangeLabel.uppercase(),
-                style = RoutineTheme.typography.labelCaps.copy(fontSize = 11.sp, letterSpacing = 1.sp),
-                color = RoutineTheme.colors.onSurfaceVariant
+                text = rangeLabel,
+                style = RoutineTheme.typography.codeSm.copy(
+                    fontSize = 10.sp, 
+                    letterSpacing = 1.sp,
+                    fontWeight = FontWeight.SemiBold
+                ),
+                color = RoutineTheme.colors.onSurfaceVariant.copy(alpha = 0.8f)
             )
         }
     }
 }
 
 @Composable
-private fun StatsPeriodButton(
+private fun ObsidianPeriodButton(
     title: String,
     isSelected: Boolean,
     onClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
+    val activeBorder = RoutineTheme.colors.primary.copy(alpha = 0.4f)
+    val inactiveBorder = Color.Transparent
+
     Box(
         modifier = modifier
-            .clip(RoutineTheme.shapes.pill)
+            .clip(RoundedCornerShape(4.dp))
             .background(if (isSelected) RoutineTheme.colors.surface2 else Color.Transparent)
             .border(
                 1.dp,
-                if (isSelected) RoutineTheme.colors.primary.copy(alpha = 0.35f) else Color.Transparent,
-                RoutineTheme.shapes.pill
+                if (isSelected) activeBorder else inactiveBorder,
+                RoundedCornerShape(4.dp)
             )
             .clickable(onClick = onClick)
             .padding(vertical = 8.dp, horizontal = 4.dp),
@@ -102,9 +116,12 @@ private fun StatsPeriodButton(
     ) {
         Text(
             text = title,
-            style = RoutineTheme.typography.labelCaps.copy(letterSpacing = 1.sp),
-            color = if (isSelected) RoutineTheme.colors.primary else RoutineTheme.colors.onSurfaceVariant,
-            fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium
+            style = RoutineTheme.typography.codeSm.copy(
+                fontSize = 11.sp,
+                letterSpacing = 1.sp,
+                fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium
+            ),
+            color = if (isSelected) RoutineTheme.colors.primary else RoutineTheme.colors.onSurfaceVariant
         )
     }
 }

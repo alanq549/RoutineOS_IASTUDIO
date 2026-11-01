@@ -411,7 +411,7 @@ private fun EngineeringSection(
                     letterSpacing = 2.sp,
                     fontWeight = FontWeight.Bold
                 ),
-                color = Color.White
+                color = RoutineTheme.colors.onSurface
             )
         }
         Text(
@@ -561,7 +561,7 @@ private fun SystemAssignmentRow(
             Text(
                 text = currentSystem?.title ?: "SIN SISTEMA",
                 style = RoutineTheme.typography.labelCaps.copy(fontSize = 12.sp, fontWeight = FontWeight.Bold),
-                color = if (currentSystem != null) Color.White else RoutineTheme.colors.onSurfaceVariant,
+                color = if (currentSystem != null) RoutineTheme.colors.onSurface else RoutineTheme.colors.onSurfaceVariant,
                 modifier = Modifier.weight(1f)
             )
             Icon(
@@ -753,7 +753,7 @@ private fun NodeItem(
                             fontSize = 15.sp, 
                             fontWeight = FontWeight.Bold
                         ),
-                        color = Color.White
+                        color = RoutineTheme.colors.onSurface
                     )
                     
                     Row(verticalAlignment = Alignment.CenterVertically) {

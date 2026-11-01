@@ -4,6 +4,7 @@ import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
@@ -22,8 +23,13 @@ import com.alan.routineos.core.designsystem.component.RoutineEmptyState
 import com.alan.routineos.core.designsystem.theme.RoutineTheme
 import com.alan.routineos.feature.dashboard.components.ActivityCard
 import com.alan.routineos.feature.dashboard.components.LifeSystemEditorSheet
+import com.alan.routineos.feature.dashboard.components.getTechnicalIcon
 import com.alan.routineos.feature.dashboard.model.ActivityCardModel
 
+/**
+ * ActivityCatalogScreen alineada con la especificación Stitch
+ * (Obsidian Technical Architecture).
+ */
 @Composable
 fun ActivityCatalogScreen(
     uiState: ActivityCatalogUiState,
@@ -43,24 +49,36 @@ fun ActivityCatalogScreen(
 ) {
     var activityToDelete by remember { mutableStateOf<ActivityCardModel?>(null) }
 
-    Box(modifier = modifier.fillMaxSize()) {
+    Box(modifier = modifier.fillMaxSize().background(RoutineTheme.colors.background)) {
         Column(
             modifier = Modifier
                 .fillMaxSize()
                 .verticalScroll(rememberScrollState())
                 .padding(bottom = if (isSheetMode) 24.dp else RoutineTheme.spacing.xl)
         ) {
-            if (!isSheetMode) {
-                Spacer(modifier = Modifier.height(RoutineTheme.spacing.lg))
+            if (isSheetMode) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(top = 8.dp, bottom = 4.dp),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Box(
+                        modifier = Modifier
+                            .width(36.dp)
+                            .height(4.dp)
+                            .background(RoutineTheme.colors.border.copy(alpha = 0.8f), RoundedCornerShape(2.dp))
+                    )
+                }
             } else {
-                Spacer(modifier = Modifier.height(RoutineTheme.spacing.sm))
+                Spacer(modifier = Modifier.height(12.dp))
             }
 
-            // Header Row
+            // HEADER SECTION WITH COUNTER & ACTIONS (Stitch Lines 21-36)
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = RoutineTheme.spacing.md),
+                    .padding(horizontal = 16.dp, vertical = 8.dp),
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
@@ -70,70 +88,104 @@ fun ActivityCatalogScreen(
                 ) {
                     Text(
                         text = "Mis Rutinas",
-                        style = RoutineTheme.typography.headlineMedium,
-                        color = RoutineTheme.colors.onSurface,
-                        fontWeight = FontWeight.Bold
+                        style = RoutineTheme.typography.headlineMedium.copy(
+                            fontSize = 20.sp,
+                            fontWeight = FontWeight.SemiBold,
+                            letterSpacing = (-0.2).sp
+                        ),
+                        color = RoutineTheme.colors.onSurface
                     )
-                    Spacer(modifier = Modifier.width(RoutineTheme.spacing.sm))
-                    Text(
-                        text = "${uiState.myActivities.size}",
-                        style = RoutineTheme.typography.dataMedium,
-                        color = RoutineTheme.colors.primary,
+                    Spacer(modifier = Modifier.width(8.dp))
+                    // Badge contador: inline-flex rounded-full bg-surface-container-high text-primary
+                    Box(
                         modifier = Modifier
-                            .background(RoutineTheme.colors.surface1, RoutineTheme.shapes.small)
-                            .border(1.dp, RoutineTheme.colors.border, RoutineTheme.shapes.small)
+                            .background(RoutineTheme.colors.surface3, CircleShape)
                             .padding(horizontal = 8.dp, vertical = 2.dp)
-                    )
+                    ) {
+                        Text(
+                            text = "${uiState.myActivities.size}",
+                            style = RoutineTheme.typography.codeSm.copy(
+                                fontSize = 11.sp,
+                                fontWeight = FontWeight.SemiBold,
+                                color = RoutineTheme.colors.primary
+                            )
+                        )
+                    }
                 }
 
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(6.dp)
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
+                    // Botón + RUTINA: bg-primary text-on-primary
                     Button(
                         onClick = onAddActivity,
                         colors = ButtonDefaults.buttonColors(
                             containerColor = RoutineTheme.colors.primary,
                             contentColor = RoutineTheme.colors.onPrimary
                         ),
-                        shape = RoutineTheme.shapes.small,
+                        shape = RoundedCornerShape(4.dp),
                         contentPadding = PaddingValues(horizontal = 10.dp, vertical = 4.dp),
-                        modifier = Modifier.height(34.dp)
+                        modifier = Modifier.height(28.dp)
                     ) {
-                        Icon(Icons.Default.Add, contentDescription = null, modifier = Modifier.size(14.dp))
+                        Icon(
+                            imageVector = Icons.Default.Add,
+                            contentDescription = null,
+                            modifier = Modifier.size(14.dp)
+                        )
                         Spacer(modifier = Modifier.width(4.dp))
                         Text(
                             text = "RUTINA",
-                            style = RoutineTheme.typography.labelCaps.copy(fontSize = 11.sp, fontWeight = FontWeight.Bold)
+                            style = RoutineTheme.typography.codeSm.copy(
+                                fontSize = 10.sp,
+                                fontWeight = FontWeight.SemiBold
+                            )
                         )
                     }
 
-                    TextButton(
+                    // Botón + ÁREA: bg-surface-container-high text-primary
+                    Button(
                         onClick = onAddSystem,
-                        contentPadding = PaddingValues(horizontal = 8.dp, vertical = 4.dp),
-                        modifier = Modifier.height(34.dp)
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = RoutineTheme.colors.surface3,
+                            contentColor = RoutineTheme.colors.primary
+                        ),
+                        shape = RoundedCornerShape(4.dp),
+                        contentPadding = PaddingValues(horizontal = 10.dp, vertical = 4.dp),
+                        modifier = Modifier.height(28.dp)
                     ) {
-                        Icon(Icons.Default.Add, null, modifier = Modifier.size(RoutineTheme.dimensions.iconXs))
-                        Spacer(modifier = Modifier.width(2.dp))
-                        Text("ÁREA", style = RoutineTheme.typography.labelCaps.copy(fontSize = 10.sp))
+                        Icon(
+                            imageVector = Icons.Default.Add,
+                            contentDescription = null,
+                            tint = RoutineTheme.colors.primary,
+                            modifier = Modifier.size(14.dp)
+                        )
+                        Spacer(modifier = Modifier.width(4.dp))
+                        Text(
+                            text = "ÁREA", 
+                            style = RoutineTheme.typography.codeSm.copy(
+                                fontSize = 10.sp,
+                                fontWeight = FontWeight.SemiBold,
+                                color = RoutineTheme.colors.primary
+                            )
+                        )
                     }
                 }
             }
 
-            Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(4.dp))
 
-            // SYSTEM FILTER ROW
+            // HORIZONTAL FILTER CHIPS (Stitch Lines 38-63)
             LazyRow(
-                contentPadding = PaddingValues(horizontal = RoutineTheme.spacing.md),
-                horizontalArrangement = Arrangement.spacedBy(12.dp),
+                contentPadding = PaddingValues(horizontal = 16.dp),
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
                 modifier = Modifier.fillMaxWidth()
             ) {
                 item {
                     SystemFilterChip(
                         name = "Todas",
                         count = uiState.totalActivitiesCount,
-                        icon = Icons.Default.AccountTree,
-                        color = RoutineTheme.colors.onSurfaceVariant,
+                        icon = Icons.Default.Layers,
                         isSelected = uiState.selectedSystemId == null,
                         onClick = { onSystemSelected(null) }
                     )
@@ -143,7 +195,6 @@ fun ActivityCatalogScreen(
                         name = system.title,
                         count = uiState.systemCounts[system.id] ?: 0,
                         icon = getTechnicalIcon(system.iconKey),
-                        color = Color(android.graphics.Color.parseColor(system.colorHex)),
                         isSelected = uiState.selectedSystemId == system.id,
                         onClick = { onSystemSelected(system.id) },
                         onEditClick = { onEditSystem(system.id) },
@@ -152,9 +203,13 @@ fun ActivityCatalogScreen(
                 }
             }
 
-            Spacer(modifier = Modifier.height(RoutineTheme.spacing.lg))
+            Spacer(modifier = Modifier.height(16.dp))
 
-            Column(modifier = Modifier.padding(horizontal = RoutineTheme.spacing.md)) {
+            // ROUTINE CARDS STREAM (Stitch Lines 65-370)
+            Column(
+                modifier = Modifier.padding(horizontal = 16.dp),
+                verticalArrangement = Arrangement.spacedBy(16.dp)
+            ) {
                 if (uiState.myActivities.isEmpty()) {
                     val isFiltered = uiState.selectedSystemId != null
                     RoutineEmptyState(
@@ -176,7 +231,6 @@ fun ActivityCatalogScreen(
                             onDeleteClick = if (onDeleteActivity != null) { { activityToDelete = activity } } else null,
                             isSheetMode = isSheetMode
                         )
-                        Spacer(modifier = Modifier.height(RoutineTheme.spacing.md))
                     }
                 }
             }
@@ -187,10 +241,10 @@ fun ActivityCatalogScreen(
                 onClick = onAddActivity,
                 containerColor = RoutineTheme.colors.primary,
                 contentColor = RoutineTheme.colors.onPrimary,
-                shape = RoutineTheme.shapes.medium,
+                shape = RoundedCornerShape(16.dp),
                 modifier = Modifier
                     .align(Alignment.BottomEnd)
-                    .padding(RoutineTheme.spacing.lg)
+                    .padding(16.dp)
                     .size(56.dp)
             ) {
                 Icon(Icons.Default.Add, contentDescription = "Add activity")
@@ -225,7 +279,7 @@ fun ActivityCatalogScreen(
                             containerColor = RoutineTheme.colors.error,
                             contentColor = RoutineTheme.colors.onPrimary
                         ),
-                        shape = RoutineTheme.shapes.small
+                        shape = RoundedCornerShape(4.dp)
                     ) {
                         Text("Eliminar", style = RoutineTheme.typography.labelCaps.copy(fontWeight = FontWeight.Bold))
                     }
@@ -236,7 +290,7 @@ fun ActivityCatalogScreen(
                     }
                 },
                 containerColor = RoutineTheme.colors.surface1,
-                shape = RoutineTheme.shapes.large
+                shape = RoundedCornerShape(12.dp)
             )
         }
 
@@ -253,65 +307,74 @@ fun ActivityCatalogScreen(
     }
 }
 
+/**
+ * SystemFilterChip idéntico a las clases de Stitch:
+ * Active: rounded-xl bg-surface-container-highest text-primary
+ * Inactive: rounded-xl bg-surface-container text-on-surface-variant
+ */
 @Composable
 private fun SystemFilterChip(
     name: String,
     count: Int,
     icon: ImageVector,
-    color: Color,
     isSelected: Boolean,
     onClick: () -> Unit,
     onEditClick: (() -> Unit)? = null,
     onDeleteClick: (() -> Unit)? = null
 ) {
-    val backgroundColor = if (isSelected) color.copy(alpha = 0.12f) else RoutineTheme.colors.surface2
-    val borderColor = if (isSelected) color.copy(alpha = 0.8f) else RoutineTheme.colors.border.copy(alpha = 0.4f)
+    val chipBackground = if (isSelected) RoutineTheme.colors.surfaceContainerHighest else RoutineTheme.colors.surface2
+    val countBackground = if (isSelected) RoutineTheme.colors.surface2 else RoutineTheme.colors.surface3
+    val contentColor = if (isSelected) RoutineTheme.colors.primary else RoutineTheme.colors.onSurfaceVariant
+    val countTextColor = if (isSelected) RoutineTheme.colors.onSurface else RoutineTheme.colors.onSurfaceVariant
     var showMenu by remember { mutableStateOf(false) }
 
     Surface(
-        color = backgroundColor,
-        shape = RoundedCornerShape(10.dp),
-        border = BorderStroke(1.dp, borderColor),
+        color = chipBackground,
+        shape = RoundedCornerShape(12.dp),
         modifier = Modifier
-            .height(44.dp)
+            .height(32.dp)
             .clickable(onClick = onClick)
     ) {
         Row(
-            modifier = Modifier.padding(
-                start = 14.dp,
-                end = if (isSelected && (onEditClick != null || onDeleteClick != null)) 6.dp else 14.dp
-            ),
+            modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.Center
         ) {
+            // Count container: w-4 h-4 rounded
             Surface(
-                color = if (isSelected) color.copy(alpha = 0.2f) else RoutineTheme.colors.background.copy(alpha = 0.6f),
+                color = countBackground,
                 shape = RoundedCornerShape(4.dp),
-                modifier = Modifier.size(width = 24.dp, height = 18.dp)
+                modifier = Modifier.size(18.dp)
             ) {
                 Box(contentAlignment = Alignment.Center) {
                     Text(
-                        text = count.toString(),
-                        style = RoutineTheme.typography.dataLarge.copy(fontSize = 10.sp, fontWeight = FontWeight.Bold),
-                        color = if (isSelected) color else RoutineTheme.colors.onSurfaceVariant
+                        text = "$count",
+                        style = RoutineTheme.typography.codeSm.copy(
+                            fontSize = 10.sp,
+                            fontWeight = FontWeight.SemiBold
+                        ),
+                        color = countTextColor
                     )
                 }
             }
             
-            Spacer(modifier = Modifier.width(12.dp))
+            Spacer(modifier = Modifier.width(6.dp))
 
             Icon(
                 imageVector = icon,
                 contentDescription = null,
-                tint = if (isSelected) color else RoutineTheme.colors.onSurfaceVariant.copy(alpha = 0.7f),
-                modifier = Modifier.size(16.dp)
+                tint = contentColor,
+                modifier = Modifier.size(15.dp)
             )
-            Spacer(modifier = Modifier.width(8.dp))
+            Spacer(modifier = Modifier.width(6.dp))
             Text(
                 text = name.uppercase(),
-                style = RoutineTheme.typography.labelCaps.copy(fontSize = 11.sp, letterSpacing = 1.sp),
-                color = if (isSelected) Color.White else RoutineTheme.colors.onSurfaceVariant,
-                fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium
+                style = RoutineTheme.typography.codeSm.copy(
+                    fontSize = 10.sp,
+                    letterSpacing = 1.sp,
+                    fontWeight = FontWeight.SemiBold
+                ),
+                color = contentColor
             )
 
             if (isSelected && (onEditClick != null || onDeleteClick != null)) {
@@ -319,12 +382,12 @@ private fun SystemFilterChip(
                 Box {
                     IconButton(
                         onClick = { showMenu = true },
-                        modifier = Modifier.size(28.dp)
+                        modifier = Modifier.size(22.dp)
                     ) {
                         Icon(
                             imageVector = Icons.Default.MoreVert,
                             contentDescription = "Opciones del sistema",
-                            tint = Color.White.copy(alpha = 0.8f),
+                            tint = contentColor,
                             modifier = Modifier.size(14.dp)
                         )
                     }
@@ -358,21 +421,5 @@ private fun SystemFilterChip(
                 }
             }
         }
-    }
-}
-
-private fun getTechnicalIcon(name: String): ImageVector {
-    return when (name.lowercase()) {
-        "fitness_center" -> Icons.Default.FitnessCenter
-        "school" -> Icons.Default.School
-        "work" -> Icons.Default.Work
-        "favorite" -> Icons.Default.Favorite
-        "bedtime" -> Icons.Default.Bedtime
-        "rocket" -> Icons.Default.RocketLaunch
-        "account_tree" -> Icons.Default.AccountTree
-        "science" -> Icons.Default.Science
-        "psychology" -> Icons.Default.Psychology
-        "palette" -> Icons.Default.Palette
-        else -> Icons.Default.AccountTree
     }
 }

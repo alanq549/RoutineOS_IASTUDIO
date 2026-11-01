@@ -6,14 +6,17 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Person
+import androidx.compose.material.icons.filled.Sync
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.alan.routineos.core.designsystem.component.RoutineScaffold
 import com.alan.routineos.core.designsystem.theme.RoutineTheme
 
@@ -49,21 +52,55 @@ fun PlanningWorkspace(
                         fontWeight = FontWeight.Bold
                     )
 
-                    if (onNavigateToAccount != null) {
-                        IconButton(onClick = onNavigateToAccount) {
-                            Box(
-                                modifier = Modifier
-                                    .size(36.dp)
-                                    .background(RoutineTheme.colors.surface2, CircleShape)
-                                    .border(1.dp, RoutineTheme.colors.border, CircleShape),
-                                contentAlignment = Alignment.Center
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        // SYNCED badge from Stitch
+                        Surface(
+                            color = RoutineTheme.colors.surface2,
+                            shape = androidx.compose.foundation.shape.RoundedCornerShape(6.dp),
+                            border = androidx.compose.foundation.BorderStroke(1.dp, RoutineTheme.colors.border.copy(alpha = 0.5f))
+                        ) {
+                            Row(
+                                modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(4.dp)
                             ) {
                                 Icon(
-                                    imageVector = Icons.Default.Person,
-                                    contentDescription = "Cuenta",
-                                    tint = RoutineTheme.colors.onSurfaceVariant,
-                                    modifier = Modifier.size(20.dp)
+                                    imageVector = Icons.Default.Sync,
+                                    contentDescription = null,
+                                    tint = RoutineTheme.colors.primary,
+                                    modifier = Modifier.size(13.dp)
                                 )
+                                Text(
+                                    text = "SYNCED",
+                                    style = RoutineTheme.typography.codeSm.copy(
+                                        fontSize = 10.sp,
+                                        fontWeight = FontWeight.Bold,
+                                        letterSpacing = 0.5.sp
+                                    ),
+                                    color = RoutineTheme.colors.primary
+                                )
+                            }
+                        }
+
+                        if (onNavigateToAccount != null) {
+                            IconButton(onClick = onNavigateToAccount) {
+                                Box(
+                                    modifier = Modifier
+                                        .size(36.dp)
+                                        .background(RoutineTheme.colors.surface2, CircleShape)
+                                        .border(1.dp, RoutineTheme.colors.border, CircleShape),
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    Icon(
+                                        imageVector = Icons.Default.Person,
+                                        contentDescription = "Cuenta",
+                                        tint = RoutineTheme.colors.onSurfaceVariant,
+                                        modifier = Modifier.size(20.dp)
+                                    )
+                                }
                             }
                         }
                     }

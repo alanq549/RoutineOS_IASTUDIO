@@ -250,6 +250,22 @@ private fun FullActivityBlock(
             )
         ) {
             Box(modifier = Modifier.fillMaxWidth()) {
+                // LEFT ACCENT GLOW RAIL
+                Box(
+                    modifier = Modifier
+                        .width(4.dp)
+                        .fillMaxHeight()
+                        .align(Alignment.CenterStart)
+                        .background(
+                            Brush.verticalGradient(
+                                listOf(
+                                    semanticColor.copy(alpha = 0.9f),
+                                    semanticColor.copy(alpha = 0.35f)
+                                )
+                            )
+                        )
+                )
+
                 // Stitch Glow effect (Atmospheric Blur, not a square)
                 Box(
                     modifier = Modifier
@@ -265,7 +281,7 @@ private fun FullActivityBlock(
                 )
 
                 Column {
-                    Column(modifier = Modifier.padding(14.dp)) {
+                    Column(modifier = Modifier.padding(start = 14.dp, top = 14.dp, end = 14.dp, bottom = 14.dp)) {
                         Row(
                             modifier = Modifier.fillMaxWidth(),
                             horizontalArrangement = Arrangement.SpaceBetween,
@@ -307,7 +323,7 @@ private fun FullActivityBlock(
                         Text(
                             text = item.title,
                             style = RoutineTheme.typography.bodyBase.copy(fontWeight = FontWeight.ExtraBold, fontSize = 19.sp, letterSpacing = (-0.5).sp),
-                            color = Color.White
+                            color = RoutineTheme.colors.onSurface
                         )
 
                         if (durationText != null) {
@@ -333,13 +349,13 @@ private fun FullActivityBlock(
                             }
                         }
 
-                        // Hierarchy Expansion (Indented with Line)
+                        // Hierarchy Expansion (Indented with Line and Circuit Connectors)
                         AnimatedVisibility(visible = item.isExpanded) {
                             if (item.subNodes.isNotEmpty()) {
                                 Spacer(modifier = Modifier.height(14.dp))
                                 Column(modifier = Modifier.padding(start = 4.dp).drawThreadLine(PlanningAccents.SpineMedium.copy(alpha = 0.4f)).padding(start = 20.dp)) {
-                                    item.subNodes.forEach { sub ->
-                                        PlanningSubNodeRow(sub)
+                                    item.subNodes.forEachIndexed { idx, sub ->
+                                        PlanningSubNodeRow(sub, isLast = idx == item.subNodes.lastIndex, semanticColor = semanticColor)
                                         Spacer(modifier = Modifier.height(8.dp))
                                     }
                                 }
@@ -447,20 +463,37 @@ private fun CompactTaskBlock(
                 color = if (isOmitted) RoutineTheme.colors.border else indigoAccent.copy(alpha = 0.25f)
             )
         ) {
-            Row(
-                modifier = Modifier.padding(horizontal = 14.dp, vertical = 14.dp),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                // Planning Schedule Icon (Not a checkbox in planning view)
+            Box(modifier = Modifier.fillMaxWidth()) {
+                // LEFT ACCENT GLOW RAIL
                 Box(
                     modifier = Modifier
-                        .size(24.dp)
-                        .border(1.dp, indigoAccent.copy(alpha = 0.4f), RoundedCornerShape(6.dp))
-                        .background(indigoAccent.copy(alpha = 0.08f), RoundedCornerShape(6.dp)),
-                    contentAlignment = Alignment.Center
+                        .width(4.dp)
+                        .fillMaxHeight()
+                        .align(Alignment.CenterStart)
+                        .background(
+                            Brush.verticalGradient(
+                                listOf(
+                                    indigoAccent.copy(alpha = 0.9f),
+                                    indigoAccent.copy(alpha = 0.35f)
+                                )
+                            )
+                        )
+                )
+
+                Row(
+                    modifier = Modifier.padding(start = 14.dp, top = 14.dp, end = 14.dp, bottom = 14.dp),
+                    verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Icon(Icons.Default.Schedule, null, modifier = Modifier.size(13.dp), tint = indigoAccent)
-                }
+                    // Planning Schedule Icon (Not a checkbox in planning view)
+                    Box(
+                        modifier = Modifier
+                            .size(24.dp)
+                            .border(1.dp, indigoAccent.copy(alpha = 0.4f), RoundedCornerShape(6.dp))
+                            .background(indigoAccent.copy(alpha = 0.08f), RoundedCornerShape(6.dp)),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Icon(Icons.Default.Schedule, null, modifier = Modifier.size(13.dp), tint = indigoAccent)
+                    }
                 
                 Spacer(modifier = Modifier.width(14.dp))
                 
@@ -468,7 +501,7 @@ private fun CompactTaskBlock(
                     Text(
                         text = item.title,
                         style = RoutineTheme.typography.bodyBase.copy(fontSize = 16.sp, fontWeight = FontWeight.Bold),
-                        color = Color.White,
+                        color = RoutineTheme.colors.onSurface,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis
                     )
@@ -542,7 +575,8 @@ private fun CompactTaskBlock(
                         }
                     }
                 }
-                ActionMenu(item, isOmitted, isModified) { onAction(item.id, it) }
+                    ActionMenu(item, isOmitted, isModified) { onAction(item.id, it) }
+                }
             }
         }
     }
@@ -625,14 +659,40 @@ private fun ContextIndicator(icon: androidx.compose.ui.graphics.vector.ImageVect
 }
 
 @Composable
-private fun PlanningSubNodeRow(sub: TodaySubNodeUiModel) {
+private fun PlanningSubNodeRow(
+    sub: TodaySubNodeUiModel,
+    isLast: Boolean = false,
+    semanticColor: Color = RoutineTheme.colors.primary
+) {
+    val prefix = if (isLast) "└─" else "├─"
     Row(verticalAlignment = Alignment.CenterVertically) {
-        Icon(Icons.Default.RadioButtonUnchecked, null, Modifier.size(11.dp), RoutineTheme.colors.onSurfaceVariant.copy(alpha = 0.4f))
-        Spacer(modifier = Modifier.width(12.dp))
-        Text(sub.title, style = RoutineTheme.typography.bodyBase.copy(fontSize = 14.sp), color = RoutineTheme.colors.onSurfaceVariant)
+        Text(
+            text = prefix,
+            style = RoutineTheme.typography.codeSm.copy(fontSize = 12.sp, fontWeight = FontWeight.Bold),
+            color = semanticColor.copy(alpha = 0.7f)
+        )
+        Spacer(modifier = Modifier.width(6.dp))
+        Box(
+            modifier = Modifier
+                .size(4.dp)
+                .background(semanticColor.copy(alpha = 0.6f), CircleShape)
+        )
+        Spacer(modifier = Modifier.width(8.dp))
+        Text(
+            text = sub.title,
+            style = RoutineTheme.typography.bodyBase.copy(fontSize = 13.sp),
+            color = RoutineTheme.colors.onSurface.copy(alpha = 0.9f),
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis,
+            modifier = Modifier.weight(1f, fill = false)
+        )
         if (sub.timeText.isNotBlank()) {
-            Spacer(modifier = Modifier.width(12.dp))
-            Text(sub.timeText, style = RoutineTheme.typography.dataLarge.copy(fontSize = 11.sp), color = RoutineTheme.colors.primary.copy(alpha = 0.7f))
+            Spacer(modifier = Modifier.width(10.dp))
+            Text(
+                text = sub.timeText,
+                style = RoutineTheme.typography.dataLarge.copy(fontSize = 11.sp),
+                color = semanticColor.copy(alpha = 0.8f)
+            )
         }
     }
 }
