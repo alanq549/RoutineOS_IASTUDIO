@@ -106,6 +106,15 @@ class GoogleCalendarSyncManager @Inject constructor(
     }
 
     suspend fun syncNow() {
+        try {
+            android.content.ContentResolver.requestSync(
+                null,
+                CalendarContract.AUTHORITY,
+                android.os.Bundle.EMPTY
+            )
+        } catch (_: Exception) {
+            // Best-effort system calendar sync
+        }
         performSync(isBackground = false)
     }
 
