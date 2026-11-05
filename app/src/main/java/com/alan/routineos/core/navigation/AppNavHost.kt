@@ -12,6 +12,13 @@ import com.alan.routineos.feature.planning.PlanningWorkspace
 import com.alan.routineos.feature.stats.StatsRoute
 import com.alan.routineos.feature.today.TodayRoute
 
+import androidx.compose.animation.core.FastOutSlowInEasing
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInHorizontally
+import androidx.compose.animation.slideOutHorizontally
+
 @Composable
 fun AppNavHost(
     navController: NavHostController,
@@ -21,6 +28,21 @@ fun AppNavHost(
     NavHost(
         navController = navController,
         startDestination = AppRoutes.Today.route,
+        enterTransition = {
+            fadeIn(animationSpec = tween(200, easing = FastOutSlowInEasing)) +
+                slideInHorizontally(initialOffsetX = { it / 24 }, animationSpec = tween(200, easing = FastOutSlowInEasing))
+        },
+        exitTransition = {
+            fadeOut(animationSpec = tween(160, easing = FastOutSlowInEasing))
+        },
+        popEnterTransition = {
+            fadeIn(animationSpec = tween(200, easing = FastOutSlowInEasing)) +
+                slideInHorizontally(initialOffsetX = { -it / 24 }, animationSpec = tween(200, easing = FastOutSlowInEasing))
+        },
+        popExitTransition = {
+            fadeOut(animationSpec = tween(160, easing = FastOutSlowInEasing)) +
+                slideOutHorizontally(targetOffsetX = { it / 24 }, animationSpec = tween(160, easing = FastOutSlowInEasing))
+        },
         modifier = modifier
     ) {
         composable(AppRoutes.Today.route) {

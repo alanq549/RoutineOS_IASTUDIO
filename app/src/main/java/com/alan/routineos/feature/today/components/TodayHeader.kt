@@ -36,6 +36,7 @@ fun TodayHeader(
         modifier = modifier
             .fillMaxWidth()
             .background(backgroundColor)
+            .statusBarsPadding()
             .drawBehind {
                 // Technical hairline for crisp separation
                 drawLine(
@@ -45,7 +46,7 @@ fun TodayHeader(
                     strokeWidth = 1.dp.toPx()
                 )
             }
-            .padding(top = 16.dp, bottom = 12.dp)
+            .padding(top = 12.dp, bottom = 12.dp)
     ) {
         Column(
             modifier = Modifier.fillMaxWidth(),

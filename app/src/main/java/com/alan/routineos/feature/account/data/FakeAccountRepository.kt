@@ -4,8 +4,11 @@ import com.alan.routineos.feature.account.model.*
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import javax.inject.Inject
+import javax.inject.Singleton
 
-class FakeAccountRepository {
+@Singleton
+class FakeAccountRepository @Inject constructor() {
     private val _userProfile = MutableStateFlow(
         UserProfile(
             name = "Alan Geovani",
@@ -47,11 +50,12 @@ class FakeAccountRepository {
 
     fun getAccountSections(): Flow<List<AccountSectionModel>> = _sections.asStateFlow()
 
-    fun updateProfile(name: String, email: String, bio: String) {
+    fun updateProfile(name: String, email: String, bio: String, avatarIcon: String = "google") {
         _userProfile.value = _userProfile.value.copy(
             name = name,
             email = email,
-            bio = bio
+            bio = bio,
+            avatarIcon = avatarIcon
         )
     }
 

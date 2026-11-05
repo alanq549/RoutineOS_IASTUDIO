@@ -18,5 +18,6 @@ data class AccountUiState(
     val sections: List<AccountSectionModel> = emptyList(),
     val activeDialog: AccountDialogType? = null,
     val toastMessage: String? = null,
+    val isSignedOut: Boolean = false,
     val version: String = "2.4.0 (Build 42)"
 )

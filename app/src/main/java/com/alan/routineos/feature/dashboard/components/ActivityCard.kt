@@ -370,55 +370,28 @@ fun ActivityCard(
                 }
             }
 
-            // PIE DE ACCIONES: [ + AÑADIR AL DÍA ] en verde esmeralda Stitch + "Pasos y reglas →"
+            // PIE DE ACCIONES: "Editar pasos y reglas →"
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(top = 2.dp),
-                horizontalArrangement = Arrangement.SpaceBetween,
+                horizontalArrangement = Arrangement.End,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Button(
-                    onClick = onClick,
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = RoutineTheme.colors.primary,
-                        contentColor = RoutineTheme.colors.onPrimary
-                    ),
-                    shape = RoundedCornerShape(8.dp),
-                    contentPadding = PaddingValues(horizontal = 12.dp, vertical = 6.dp),
-                    modifier = Modifier.height(34.dp)
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.Add,
-                        contentDescription = null,
-                        modifier = Modifier.size(16.dp)
-                    )
-                    Spacer(modifier = Modifier.width(6.dp))
-                    Text(
-                        text = if (isSheetMode) "AÑADIR AL DÍA" else "ABRIR INGENIERÍA",
-                        style = RoutineTheme.typography.codeSm.copy(
-                            fontSize = 10.sp, 
-                            fontWeight = FontWeight.SemiBold, 
-                            letterSpacing = 0.5.sp
-                        ),
-                        color = RoutineTheme.colors.onPrimary
-                    )
-                }
-
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.spacedBy(4.dp),
                     modifier = Modifier.clickable(onClick = onClick)
                 ) {
                     Text(
-                        text = "Pasos y reglas",
-                        style = RoutineTheme.typography.bodyBase.copy(fontSize = 12.sp),
-                        color = RoutineTheme.colors.onSurfaceVariant
+                        text = "Editar pasos y reglas",
+                        style = RoutineTheme.typography.bodyBase.copy(fontSize = 12.sp, fontWeight = FontWeight.SemiBold),
+                        color = RoutineTheme.colors.primary
                     )
                     Icon(
                         imageVector = Icons.AutoMirrored.Filled.ArrowForward,
                         contentDescription = null,
-                        tint = RoutineTheme.colors.onSurfaceVariant,
+                        tint = RoutineTheme.colors.primary,
                         modifier = Modifier.size(16.dp)
                     )
                 }

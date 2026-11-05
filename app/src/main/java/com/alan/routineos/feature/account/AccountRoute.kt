@@ -3,11 +3,11 @@ package com.alan.routineos.feature.account
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.hilt.navigation.compose.hiltViewModel
 
 @Composable
 fun AccountRoute(
-    viewModel: AccountViewModel = viewModel(),
+    viewModel: AccountViewModel = hiltViewModel(),
     onBack: () -> Unit = {},
     bottomBar: @Composable () -> Unit = {}
 ) {
@@ -29,6 +29,9 @@ fun AccountRoute(
         onClearHistory = viewModel::onClearHistory,
         onLogoutClick = viewModel::onLogoutClick,
         onConfirmLogout = viewModel::onConfirmLogout,
+        onSignInWithGoogle = viewModel::onSignInWithGoogle,
+        onEmailLogin = viewModel::onEmailLogin,
+        onEmailRegister = viewModel::onEmailRegister,
         onDismissDialog = viewModel::onDismissDialog,
         onClearToast = viewModel::onClearToast,
         onBack = onBack,

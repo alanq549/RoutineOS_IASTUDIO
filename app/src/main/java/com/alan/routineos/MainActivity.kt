@@ -27,73 +27,122 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.alan.routineos.core.designsystem.component.RoutineBottomBar
 import com.alan.routineos.core.designsystem.theme.RoutineTheme
+import android.Manifest
+import android.content.pm.PackageManager
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
+import androidx.core.content.ContextCompat
 import com.alan.routineos.core.navigation.AppNavHost
 import com.alan.routineos.core.navigation.AppRoutes
+import com.alan.routineos.data.calendar.GoogleCalendarSyncManager
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.launch
+import javax.inject.Inject
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
+
+    @Inject
+    lateinit var calendarSyncManager: GoogleCalendarSyncManager
+
+    @Inject
+    lateinit var themePreferencesManager: com.alan.routineos.core.designsystem.theme.ThemePreferencesManager
+
+    @Inject
+    lateinit var authRepository: com.alan.routineos.data.auth.AuthRepository
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContent {
-            RoutineTheme {
-                val navController = rememberNavController()
-                val navBackStackEntry by navController.currentBackStackEntryAsState()
-                val currentRoute = navBackStackEntry?.destination?.route
-
-                val bottomBar: @Composable () -> Unit = {
-                    RoutineBottomBar {
-                        BottomNavItem(
-                            label = "Today",
-                            icon = Icons.Default.CalendarToday,
-                            isSelected = currentRoute == AppRoutes.Today.route,
-                            onClick = { 
-                                navController.navigate(AppRoutes.Today.route) {
-                                    popUpTo(navController.graph.startDestinationId) {
-                                        saveState = true
-                                    }
-                                    launchSingleTop = true
-                                    restoreState = true
-                                }
-                            }
-                        )
-                        BottomNavItem(
-                            label = "Planning",
-                            icon = Icons.Default.CalendarMonth,
-                            isSelected = currentRoute == AppRoutes.Planning.route,
-                            onClick = { 
-                                navController.navigate(AppRoutes.Planning.route) {
-                                    popUpTo(navController.graph.startDestinationId) {
-                                        saveState = true
-                                    }
-                                    launchSingleTop = true
-                                    restoreState = true
-                                }
-                            }
-                        )
-                        BottomNavItem(
-                            label = "Stats",
-                            icon = Icons.Default.Insights,
-                            isSelected = currentRoute == AppRoutes.Stats.route,
-                            onClick = { 
-                                navController.navigate(AppRoutes.Stats.route) {
-                                    popUpTo(navController.graph.startDestinationId) {
-                                        saveState = true
-                                    }
-                                    launchSingleTop = true
-                                    restoreState = true
-                                }
-                            }
-                        )
+            val accentColor by themePreferencesManager.accentColor.collectAsState()
+            RoutineTheme(accentColor = accentColor) {
+                val scope = rememberCoroutineScope()
+                val permissionsLauncher = rememberLauncherForActivityResult(
+                    contract = ActivityResultContracts.RequestMultiplePermissions()
+                ) { results ->
+                    if (results[Manifest.permission.READ_CALENDAR] == true) {
+                        scope.launch {
+                            calendarSyncManager.syncNow()
+                        }
                     }
                 }
 
-                AppNavHost(
-                    navController = navController,
-                    bottomBar = bottomBar
-                )
-            }
+                LaunchedEffect(Unit) {
+                    val toRequest = mutableListOf<String>()
+                    if (ContextCompat.checkSelfPermission(
+                            this@MainActivity,
+                            Manifest.permission.READ_CALENDAR
+                        ) != PackageManager.PERMISSION_GRANTED
+                    ) {
+                        toRequest.add(Manifest.permission.READ_CALENDAR)
+                    } else {
+                        calendarSyncManager.syncNow()
+                    }
+                    if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.TIRAMISU &&
+                        ContextCompat.checkSelfPermission(
+                            this@MainActivity,
+                            Manifest.permission.POST_NOTIFICATIONS
+                        ) != PackageManager.PERMISSION_GRANTED
+                    ) {
+                        toRequest.add(Manifest.permission.POST_NOTIFICATIONS)
+                    }
+                    if (toRequest.isNotEmpty()) {
+                        permissionsLauncher.launch(toRequest.toTypedArray())
+                    }
+                }
+
+                val navController = rememberNavController()
+                    val navBackStackEntry by navController.currentBackStackEntryAsState()
+                    val currentRoute = navBackStackEntry?.destination?.route
+
+                    val navigateTab: (String) -> Unit = { route ->
+                        if (currentRoute == AppRoutes.Account.route) {
+                            navController.popBackStack(AppRoutes.Account.route, inclusive = true)
+                        }
+                        navController.navigate(route) {
+                            popUpTo(navController.graph.startDestinationId) {
+                                saveState = true
+                            }
+                            launchSingleTop = true
+                            restoreState = true
+                        }
+                    }
+
+                    val bottomBar: @Composable () -> Unit = {
+                        RoutineBottomBar {
+                            BottomNavItem(
+                                label = "Today",
+                                icon = Icons.Default.CalendarToday,
+                                isSelected = currentRoute == AppRoutes.Today.route,
+                                onClick = { navigateTab(AppRoutes.Today.route) }
+                            )
+                            BottomNavItem(
+                                label = "Planning",
+                                icon = Icons.Default.CalendarMonth,
+                                isSelected = currentRoute == AppRoutes.Planning.route,
+                                onClick = { navigateTab(AppRoutes.Planning.route) }
+                            )
+                            BottomNavItem(
+                                label = "Stats",
+                                icon = Icons.Default.Insights,
+                                isSelected = currentRoute == AppRoutes.Stats.route,
+                                onClick = { navigateTab(AppRoutes.Stats.route) }
+                            )
+                        }
+                    }
+
+                    AppNavHost(
+                        navController = navController,
+                        bottomBar = bottomBar
+                    )
+                }
         }
     }
 }

@@ -25,9 +25,11 @@ class RoutineApp : Application() {
     @Inject
     lateinit var systemDao: SystemDao
 
+    @Inject
+    lateinit var calendarSyncManager: com.alan.routineos.data.calendar.GoogleCalendarSyncManager
+
     override fun onCreate() {
         super.onCreate()
-        // Trigger dev seed with all core DAOs
-        DatabaseSeed.seedAll(definitionDao, nodeDao, ruleDao, metaDao, systemDao)
+        calendarSyncManager.startAutoSync()
     }
 }

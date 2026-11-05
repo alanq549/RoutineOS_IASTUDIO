@@ -8,7 +8,15 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.AccountCircle
+import androidx.compose.material.icons.filled.Bolt
+import androidx.compose.material.icons.filled.Code
+import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.PhotoCamera
+import androidx.compose.material.icons.filled.RocketLaunch
+import androidx.compose.material.icons.filled.Terminal
+import androidx.compose.runtime.remember
+import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -41,6 +49,20 @@ fun AccountProfileCard(
         ) {
             Box(contentAlignment = Alignment.BottomEnd) {
                 // Avatar Circle
+                val context = androidx.compose.ui.platform.LocalContext.current
+                val customBitmap = remember(profile.avatarIcon) {
+                    if (profile.avatarIcon.startsWith("custom:")) {
+                        try {
+                            val uri = android.net.Uri.parse(profile.avatarIcon.removePrefix("custom:"))
+                            context.contentResolver.openInputStream(uri)?.use { stream ->
+                                android.graphics.BitmapFactory.decodeStream(stream)?.asImageBitmap()
+                            }
+                        } catch (_: Exception) {
+                            null
+                        }
+                    } else null
+                }
+
                 Box(
                     modifier = Modifier
                         .size(72.dp)
@@ -53,14 +75,41 @@ fun AccountProfileCard(
                         ),
                     contentAlignment = Alignment.Center
                 ) {
-                    Text(
-                        text = profile.name.take(2).uppercase(),
-                        style = RoutineTheme.typography.displayLarge.copy(
-                            fontSize = 24.sp,
-                            fontWeight = FontWeight.Bold,
-                            color = RoutineTheme.colors.primary
+                    if (customBitmap != null) {
+                        androidx.compose.foundation.Image(
+                            bitmap = customBitmap,
+                            contentDescription = "Foto de perfil",
+                            contentScale = androidx.compose.ui.layout.ContentScale.Crop,
+                            modifier = Modifier.fillMaxSize()
                         )
-                    )
+                    } else {
+                        val iconVector = when (profile.avatarIcon) {
+                            "bolt" -> Icons.Default.Bolt
+                            "code" -> Icons.Default.Code
+                            "terminal" -> Icons.Default.Terminal
+                            "rocket" -> Icons.Default.RocketLaunch
+                            "person" -> Icons.Default.Person
+                            "google" -> Icons.Default.AccountCircle
+                            else -> null
+                        }
+                        if (iconVector != null) {
+                            Icon(
+                                imageVector = iconVector,
+                                contentDescription = "Avatar",
+                                tint = RoutineTheme.colors.primary,
+                                modifier = Modifier.size(34.dp)
+                            )
+                        } else {
+                            Text(
+                                text = profile.name.take(2).uppercase(),
+                                style = RoutineTheme.typography.displayLarge.copy(
+                                    fontSize = 24.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    color = RoutineTheme.colors.primary
+                                )
+                            )
+                        }
+                    }
                 }
                 
                 Box(

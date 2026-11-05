@@ -11,6 +11,8 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.AccountCircle
+import androidx.compose.material.icons.filled.LockOpen
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material3.*
@@ -31,7 +33,7 @@ import com.alan.routineos.feature.account.model.AccountDialogType
 fun AccountScreen(
     uiState: AccountUiState,
     onEditProfileClick: () -> Unit,
-    onSaveProfile: (String, String, String) -> Unit,
+    onSaveProfile: (String, String, String, String) -> Unit,
     onSettingClick: (String) -> Unit,
     onToggleCalendarProject: (Boolean) -> Unit,
     onToggleCalendarConflicts: (Boolean) -> Unit,
@@ -44,12 +46,16 @@ fun AccountScreen(
     onClearHistory: () -> Unit,
     onLogoutClick: () -> Unit,
     onConfirmLogout: () -> Unit,
+    onSignInWithGoogle: (android.content.Context, (String) -> Unit) -> Unit = { _, _ -> },
+    onEmailLogin: (String, String, (String) -> Unit) -> Unit = { _, _, _ -> },
+    onEmailRegister: (String, String, String, (String) -> Unit) -> Unit = { _, _, _, _ -> },
     onDismissDialog: () -> Unit,
     onClearToast: () -> Unit,
     modifier: Modifier = Modifier,
     onBack: (() -> Unit)? = null,
     bottomBar: @Composable () -> Unit = {}
 ) {
+    val context = androidx.compose.ui.platform.LocalContext.current
     // Auto dismiss toast after 2.5 seconds
     LaunchedEffect(uiState.toastMessage) {
         if (uiState.toastMessage != null) {
@@ -70,19 +76,27 @@ fun AccountScreen(
                 .fillMaxSize()
                 .padding(paddingValues)
         ) {
-            Column(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .verticalScroll(rememberScrollState())
-                    .padding(horizontal = 16.dp)
-                    .padding(top = 12.dp, bottom = 40.dp),
-                verticalArrangement = Arrangement.spacedBy(16.dp)
-            ) {
-                // Tarjeta de Perfil
-                AccountProfileCard(
-                    profile = uiState.profile,
-                    onEditClick = onEditProfileClick
+            if (uiState.isSignedOut) {
+                ObsidianLoginScreen(
+                    onSignInWithGoogle = { onSignInWithGoogle(context) {} },
+                    onEmailLogin = { email, password -> onEmailLogin(email, password) {} },
+                    onEmailRegister = { name, email, password -> onEmailRegister(name, email, password) {} },
+                    serverError = uiState.toastMessage
                 )
+            } else {
+                Column(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .verticalScroll(rememberScrollState())
+                        .padding(horizontal = 16.dp)
+                        .padding(top = 12.dp, bottom = 40.dp),
+                    verticalArrangement = Arrangement.spacedBy(16.dp)
+                ) {
+                    // Tarjeta de Perfil
+                    AccountProfileCard(
+                        profile = uiState.profile,
+                        onEditClick = onEditProfileClick
+                    )
 
                 // Integración de Google Calendar
                 Text(
@@ -149,6 +163,7 @@ fun AccountScreen(
                         color = RoutineTheme.colors.onSurfaceVariant.copy(alpha = 0.6f)
                     )
                 }
+            }
             }
 
             // Toast / Banner flotante de feedback
@@ -225,6 +240,13 @@ fun AccountScreen(
         }
         AccountDialogType.ABOUT -> {
             AboutDialog(version = uiState.version, onDismiss = onDismissDialog)
+        }
+        AccountDialogType.ACCESSIBILITY -> {
+            AccessibilityDialog(
+                isHighContrast = uiState.appearancePrefs.isHighContrast,
+                onToggleHighContrast = { },
+                onDismiss = onDismissDialog
+            )
         }
         AccountDialogType.LOGOUT_CONFIRMATION -> {
             LogoutConfirmationDialog(

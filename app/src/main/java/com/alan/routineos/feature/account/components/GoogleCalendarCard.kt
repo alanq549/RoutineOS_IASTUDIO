@@ -122,68 +122,106 @@ fun GoogleCalendarCard(
 
             Spacer(modifier = Modifier.height(14.dp))
 
-            // Sync Information Bar
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .background(RoutineTheme.colors.surfaceContainerLowest, RoundedCornerShape(8.dp))
-                    .padding(horizontal = 12.dp, vertical = 8.dp),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
+            // Seamless Auto-Sync Status Bar (No manual action required)
+            Surface(
+                color = RoutineTheme.colors.surfaceContainerLowest,
+                shape = RoundedCornerShape(8.dp),
+                border = BorderStroke(1.dp, RoutineTheme.colors.primary.copy(alpha = 0.15f)),
+                modifier = Modifier.fillMaxWidth()
             ) {
-                Column {
-                    Text(
-                        text = "ÚLTIMA SINCRONIZACIÓN",
-                        style = RoutineTheme.typography.codeSm.copy(
-                            fontSize = 9.sp,
-                            color = RoutineTheme.colors.onSurfaceVariant.copy(alpha = 0.6f)
-                        )
-                    )
-                    Text(
-                        text = calendarState.lastSyncTime,
-                        style = RoutineTheme.typography.codeSm.copy(
-                            fontSize = 11.sp,
-                            fontWeight = FontWeight.SemiBold,
-                            color = RoutineTheme.colors.onSurface
-                        )
-                    )
-                }
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 12.dp, vertical = 10.dp),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Column(modifier = Modifier.weight(1f)) {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(6.dp)
+                        ) {
+                            if (calendarState.isConnected) {
+                                Box(
+                                    modifier = Modifier
+                                        .size(7.dp)
+                                        .background(RoutineTheme.colors.primary, CircleShape)
+                                )
+                                Text(
+                                    text = "AUTO-SYNC EN TIEMPO REAL",
+                                    style = RoutineTheme.typography.codeSm.copy(
+                                        fontSize = 9.sp,
+                                        fontWeight = FontWeight.Bold,
+                                        letterSpacing = 1.sp,
+                                        color = RoutineTheme.colors.primary
+                                    )
+                                )
+                            } else {
+                                Box(
+                                    modifier = Modifier
+                                        .size(7.dp)
+                                        .background(RoutineTheme.colors.error, CircleShape)
+                                )
+                                Text(
+                                    text = "AUTO-SYNC PAUSADO",
+                                    style = RoutineTheme.typography.codeSm.copy(
+                                        fontSize = 9.sp,
+                                        fontWeight = FontWeight.Bold,
+                                        letterSpacing = 1.sp,
+                                        color = RoutineTheme.colors.error
+                                    )
+                                )
+                            }
+                        }
 
-                if (calendarState.isConnected) {
-                    val infiniteTransition = rememberInfiniteTransition(label = "sync")
-                    val rotation by infiniteTransition.animateFloat(
-                        initialValue = 0f,
-                        targetValue = 360f,
-                        animationSpec = infiniteRepeatable(
-                            animation = tween(800, easing = LinearEasing),
-                            repeatMode = RepeatMode.Restart
-                        ),
-                        label = "rotation"
-                    )
+                        Spacer(modifier = Modifier.height(3.dp))
 
-                    Button(
-                        onClick = onSyncNow,
-                        enabled = !calendarState.isSyncing,
-                        colors = ButtonDefaults.buttonColors(
-                            containerColor = RoutineTheme.colors.surface2,
-                            contentColor = RoutineTheme.colors.primary
-                        ),
-                        shape = RoundedCornerShape(6.dp),
-                        contentPadding = PaddingValues(horizontal = 10.dp, vertical = 4.dp),
-                        modifier = Modifier.height(28.dp)
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.Sync,
-                            contentDescription = null,
-                            modifier = Modifier
-                                .size(14.dp)
-                                .then(if (calendarState.isSyncing) Modifier.rotate(rotation) else Modifier)
-                        )
-                        Spacer(modifier = Modifier.width(4.dp))
                         Text(
-                            text = if (calendarState.isSyncing) "SINCRONIZANDO..." else "SINCRONIZAR",
-                            style = RoutineTheme.typography.codeSm.copy(fontSize = 10.sp, fontWeight = FontWeight.Bold)
+                            text = if (calendarState.isConnected)
+                                "Actualización continua en segundo plano · ${calendarState.syncedEventsCount} eventos"
+                            else
+                                "Conexión inactiva · Activa Google Calendar para reanudar",
+                            style = RoutineTheme.typography.codeSm.copy(
+                                fontSize = 11.sp,
+                                color = RoutineTheme.colors.onSurface
+                            )
                         )
+
+                        Text(
+                            text = "Último refresco: ${calendarState.lastSyncTime}",
+                            style = RoutineTheme.typography.codeSm.copy(
+                                fontSize = 9.sp,
+                                color = RoutineTheme.colors.onSurfaceVariant.copy(alpha = 0.6f)
+                            )
+                        )
+                    }
+
+                    if (calendarState.isConnected) {
+                        val infiniteTransition = rememberInfiniteTransition(label = "sync")
+                        val rotation by infiniteTransition.animateFloat(
+                            initialValue = 0f,
+                            targetValue = 360f,
+                            animationSpec = infiniteRepeatable(
+                                animation = tween(800, easing = LinearEasing),
+                                repeatMode = RepeatMode.Restart
+                            ),
+                            label = "rotation"
+                        )
+
+                        IconButton(
+                            onClick = onSyncNow,
+                            enabled = !calendarState.isSyncing,
+                            modifier = Modifier.size(32.dp)
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.Sync,
+                                contentDescription = "Refrescar ahora",
+                                tint = if (calendarState.isSyncing) RoutineTheme.colors.primary else RoutineTheme.colors.onSurfaceVariant,
+                                modifier = Modifier
+                                    .size(16.dp)
+                                    .then(if (calendarState.isSyncing) Modifier.rotate(rotation) else Modifier)
+                            )
+                        }
                     }
                 }
             }

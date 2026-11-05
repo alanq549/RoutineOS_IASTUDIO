@@ -22,7 +22,8 @@ class RoutineAlarmScheduler @Inject constructor(
         instanceId: String,
         title: String,
         triggerAtMillis: Long,
-        advanceMinutes: Int? = null
+        advanceMinutes: Int? = null,
+        roleType: String = "EVENTO"
     ) {
         val actualTrigger = if (advanceMinutes != null && advanceMinutes > 0) {
             triggerAtMillis - (advanceMinutes * 60 * 1000L)
@@ -34,13 +35,18 @@ class RoutineAlarmScheduler @Inject constructor(
 
         val intent = Intent(context, RoutineNotificationReceiver::class.java).apply {
             putExtra(RoutineNotificationReceiver.EXTRA_TITLE, title)
-            val msg = if (advanceMinutes != null && advanceMinutes > 0) {
-                "Comienza en $advanceMinutes minutos"
-            } else {
-                "Es hora de tu actividad: $title"
+            val msg = when {
+                advanceMinutes != null && advanceMinutes > 0 && roleType == "CALENDAR" ->
+                    "Compromiso externo en $advanceMinutes min · Prepárate"
+                advanceMinutes != null && advanceMinutes > 0 ->
+                    "Comienza en $advanceMinutes minutos"
+                roleType == "RECORDATORIO" -> "Recordatorio programado: $title"
+                roleType == "TAREA" -> "Tarea pendiente por ejecutar: $title"
+                else -> "Es hora de tu evento: $title"
             }
             putExtra(RoutineNotificationReceiver.EXTRA_MESSAGE, msg)
             putExtra(RoutineNotificationReceiver.EXTRA_NOTIFICATION_ID, instanceId.hashCode())
+            putExtra(RoutineNotificationReceiver.EXTRA_ROLE_TYPE, roleType)
         }
 
         val pendingIntent = PendingIntent.getBroadcast(
@@ -92,25 +98,32 @@ class RoutineAlarmScheduler @Inject constructor(
             val reminderAbs = instance.reminderAbs
             val reminderRel = instance.reminderRel
 
+            val roleType = when {
+                instance.descriptionSnapshot.contains("Google Calendar", ignoreCase = true) -> "CALENDAR"
+                instance.role == com.alan.routineos.domain.model.DailyInstanceRole.REMINDER -> "RECORDATORIO"
+                instance.role == com.alan.routineos.domain.model.DailyInstanceRole.TASK -> "TAREA"
+                else -> "EVENTO"
+            }
+
             if (reminderAbs != null) {
                 val trigger = date.atStartOfDay(zone)
                     .plusMinutes(reminderAbs.toLong())
                     .toInstant()
                     .toEpochMilli()
-                scheduleReminder(instance.id, instance.titleSnapshot, trigger)
+                scheduleReminder(instance.id, instance.titleSnapshot, trigger, roleType = roleType)
             } else if (startMinutes != null && reminderRel != null) {
                 val trigger = date.atStartOfDay(zone)
                     .plusMinutes(startMinutes.toLong())
                     .toInstant()
                     .toEpochMilli()
-                scheduleReminder(instance.id, instance.titleSnapshot, trigger, reminderRel)
+                scheduleReminder(instance.id, instance.titleSnapshot, trigger, reminderRel, roleType = roleType)
             } else if (startMinutes != null) {
-                // Default subtle prompt at start
+                // Default 10-minute advance notice before activity starts
                 val trigger = date.atStartOfDay(zone)
                     .plusMinutes(startMinutes.toLong())
                     .toInstant()
                     .toEpochMilli()
-                scheduleReminder(instance.id, instance.titleSnapshot, trigger)
+                scheduleReminder(instance.id, instance.titleSnapshot, trigger, advanceMinutes = 10, roleType = roleType)
             }
         }
     }

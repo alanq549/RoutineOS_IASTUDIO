@@ -54,11 +54,16 @@ object RoutineTheme {
 @Composable
 fun RoutineTheme(
     darkTheme: Boolean = isSystemInDarkTheme(),
+    accentColor: androidx.compose.ui.graphics.Color = androidx.compose.ui.graphics.Color(0xFF5AF0B3),
     content: @Composable () -> Unit
 ) {
     // Technical Premium Narrative is primarily a Dark Mode design.
-    // We default to DarkRoutineColorScheme.
-    val colors = if (darkTheme) DarkRoutineColorScheme else DarkRoutineColorScheme
+    // We default to DarkRoutineColorScheme with dynamic accent color.
+    val baseColors = if (darkTheme) DarkRoutineColorScheme else DarkRoutineColorScheme
+    val colors = baseColors.copy(
+        primary = accentColor,
+        roleEvent = accentColor
+    )
 
     val view = LocalView.current
     if (!view.isInEditMode) {

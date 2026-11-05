@@ -5,17 +5,19 @@ data class UserProfile(
     val email: String,
     val avatarUrl: String?,
     val plan: String,
-    val bio: String = "Ingeniería y Alto Rendimiento"
+    val bio: String = "Ingeniería y Alto Rendimiento",
+    val avatarIcon: String = "google"
 )
 
 data class GoogleCalendarState(
     val isConnected: Boolean = true,
     val accountEmail: String = "alanqFF@gmail.com",
-    val lastSyncTime: String = "Hace 2 minutos",
+    val lastSyncTime: String = "Hace un momento",
     val projectEventsInPlanning: Boolean = true,
     val detectConflicts: Boolean = true,
     val isSyncing: Boolean = false,
-    val syncedEventsCount: Int = 3
+    val syncedEventsCount: Int = 5,
+    val autoSyncActive: Boolean = true
 )
 
 data class DataStorageStats(

@@ -86,10 +86,12 @@ fun TodayScreen(
         }
     }
 
+    var toastMessage by remember { mutableStateOf<String?>(null) }
+
     LaunchedEffect(Unit) {
         uiEvent.collect { event ->
             if (event is ActivityDetailUiEvent.SchedulingUpsertSuccess) {
-                Toast.makeText(context, event.message, Toast.LENGTH_SHORT).show()
+                toastMessage = event.message
             }
         }
     }
@@ -137,11 +139,22 @@ fun TodayScreen(
                 onNavigateToAccount = onNavigateToAccount
             )
         },
-        snackbarHost = { SnackbarHost(snackbarHostState) },
+        snackbarHost = {
+            Column {
+                SnackbarHost(snackbarHostState)
+                com.alan.routineos.core.designsystem.component.RoutineToastHost(
+                    message = toastMessage,
+                    onDismiss = { toastMessage = null }
+                )
+            }
+        },
         bottomBar = bottomBar
     ) { paddingValues ->
         Box(modifier = Modifier.fillMaxSize().padding(paddingValues)) {
             // Viewport with Alpha Masking for a premium translucency effect
+            if (uiState.isLoading) {
+                com.alan.routineos.core.designsystem.component.TimelineSkeletonList()
+            } else {
             LazyColumn(
                 state = listState,
                 modifier = Modifier
@@ -194,6 +207,7 @@ fun TodayScreen(
                         )
                     }
                 }
+            }
             }
 
             // NOW button (Stays visible on top of the mask)

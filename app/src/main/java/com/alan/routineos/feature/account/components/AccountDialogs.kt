@@ -25,12 +25,22 @@ import com.alan.routineos.feature.account.model.*
 fun EditProfileSheet(
     profile: UserProfile,
     bio: String,
-    onSave: (String, String, String) -> Unit,
+    onSave: (String, String, String, String) -> Unit,
     onDismiss: () -> Unit
 ) {
     var name by remember { mutableStateOf(profile.name) }
     var email by remember { mutableStateOf(profile.email) }
     var currentBio by remember { mutableStateOf(bio) }
+    var selectedIcon by remember { mutableStateOf(profile.avatarIcon) }
+
+    val iconOptions = listOf(
+        "google" to "Google",
+        "person" to "Perfil",
+        "bolt" to "Energía",
+        "code" to "Código",
+        "terminal" to "Terminal",
+        "rocket" to "Enfoque"
+    )
 
     ModalBottomSheet(
         onDismissRequest = onDismiss,
@@ -53,7 +63,7 @@ fun EditProfileSheet(
                 color = RoutineTheme.colors.primary
             )
             Text(
-                text = "Identidad y Datos de Usuario",
+                text = "Identidad y Avatar",
                 style = RoutineTheme.typography.headlineMedium.copy(
                     fontSize = 18.sp,
                     fontWeight = FontWeight.Bold
@@ -61,7 +71,97 @@ fun EditProfileSheet(
                 color = RoutineTheme.colors.onSurface
             )
 
-            Spacer(modifier = Modifier.height(18.dp))
+            Spacer(modifier = Modifier.height(16.dp))
+
+            // Avatar / Icon Selector + Photo Picker
+            val photoPickerLauncher = androidx.activity.compose.rememberLauncherForActivityResult(
+                contract = androidx.activity.result.contract.ActivityResultContracts.PickVisualMedia()
+            ) { uri ->
+                if (uri != null) {
+                    selectedIcon = "custom:$uri"
+                }
+            }
+
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    text = "AVATAR O ÍCONO",
+                    style = RoutineTheme.typography.codeSm.copy(fontSize = 10.sp, color = RoutineTheme.colors.onSurfaceVariant)
+                )
+                TextButton(
+                    onClick = {
+                        photoPickerLauncher.launch(
+                            androidx.activity.result.PickVisualMediaRequest(
+                                androidx.activity.result.contract.ActivityResultContracts.PickVisualMedia.ImageOnly
+                            )
+                        )
+                    },
+                    contentPadding = PaddingValues(horizontal = 8.dp, vertical = 2.dp)
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.PhotoLibrary,
+                        contentDescription = null,
+                        tint = RoutineTheme.colors.primary,
+                        modifier = Modifier.size(14.dp)
+                    )
+                    Spacer(modifier = Modifier.width(4.dp))
+                    Text(
+                        text = if (selectedIcon.startsWith("custom:")) "Foto cargada ✓" else "Subir foto",
+                        style = RoutineTheme.typography.codeSm.copy(fontSize = 10.sp, fontWeight = FontWeight.Bold),
+                        color = RoutineTheme.colors.primary
+                    )
+                }
+            }
+            Spacer(modifier = Modifier.height(6.dp))
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(10.dp)
+            ) {
+                iconOptions.forEach { (key, label) ->
+                    val isSelected = selectedIcon == key
+                    Surface(
+                        onClick = { selectedIcon = key },
+                        color = if (isSelected) RoutineTheme.colors.primary.copy(alpha = 0.16f) else RoutineTheme.colors.surface1,
+                        shape = RoundedCornerShape(10.dp),
+                        border = BorderStroke(
+                            1.dp,
+                            if (isSelected) RoutineTheme.colors.primary else RoutineTheme.colors.border.copy(alpha = 0.4f)
+                        ),
+                        modifier = Modifier.weight(1f)
+                    ) {
+                        Column(
+                            modifier = Modifier.padding(vertical = 8.dp),
+                            horizontalAlignment = Alignment.CenterHorizontally
+                        ) {
+                            Icon(
+                                imageVector = when (key) {
+                                    "google" -> Icons.Default.AccountCircle
+                                    "bolt" -> Icons.Default.Bolt
+                                    "code" -> Icons.Default.Code
+                                    "terminal" -> Icons.Default.Terminal
+                                    "rocket" -> Icons.Default.RocketLaunch
+                                    else -> Icons.Default.Person
+                                },
+                                contentDescription = label,
+                                tint = if (isSelected) RoutineTheme.colors.primary else RoutineTheme.colors.onSurfaceVariant,
+                                modifier = Modifier.size(20.dp)
+                            )
+                            Spacer(modifier = Modifier.height(3.dp))
+                            Text(
+                                text = label,
+                                style = RoutineTheme.typography.codeSm.copy(fontSize = 8.sp, fontWeight = FontWeight.Bold),
+                                color = if (isSelected) RoutineTheme.colors.primary else RoutineTheme.colors.onSurfaceVariant,
+                                maxLines = 1
+                            )
+                        }
+                    }
+                }
+            }
+
+            Spacer(modifier = Modifier.height(16.dp))
 
             // Campo Nombre
             Text(
@@ -137,7 +237,7 @@ fun EditProfileSheet(
                 }
 
                 Button(
-                    onClick = { onSave(name, email, currentBio) },
+                    onClick = { onSave(name, email, currentBio, selectedIcon) },
                     enabled = name.isNotBlank(),
                     modifier = Modifier.weight(1f).height(44.dp),
                     shape = RoundedCornerShape(8.dp),
@@ -510,6 +610,97 @@ fun LogoutConfirmationDialog(
         dismissButton = {
             TextButton(onClick = onDismiss) {
                 Text("Cancelar", style = RoutineTheme.typography.codeSm.copy(fontWeight = FontWeight.Bold), color = RoutineTheme.colors.onSurfaceVariant)
+            }
+        },
+        containerColor = RoutineTheme.colors.surface1,
+        shape = RoundedCornerShape(12.dp)
+    )
+}
+
+@Composable
+fun AccessibilityDialog(
+    isHighContrast: Boolean,
+    onToggleHighContrast: (Boolean) -> Unit,
+    onDismiss: () -> Unit
+) {
+    var highContrast by remember { mutableStateOf(isHighContrast) }
+    var hapticFeedback by remember { mutableStateOf(true) }
+
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = {
+            Column {
+                Text(
+                    text = "INTERFAZ Y ACCESIBILIDAD",
+                    style = RoutineTheme.typography.codeSm.copy(fontSize = 10.sp, fontWeight = FontWeight.Bold, letterSpacing = 1.sp),
+                    color = RoutineTheme.colors.primary
+                )
+                Text(
+                    text = "Contraste y Respuesta Háptica",
+                    style = RoutineTheme.typography.headlineMedium.copy(fontSize = 17.sp, fontWeight = FontWeight.Bold),
+                    color = RoutineTheme.colors.onSurface
+                )
+            }
+        },
+        text = {
+            Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Column(modifier = Modifier.weight(1f)) {
+                        Text(
+                            text = "Contraste técnico alto",
+                            style = RoutineTheme.typography.bodyBase.copy(fontSize = 13.sp, fontWeight = FontWeight.SemiBold),
+                            color = RoutineTheme.colors.onSurface
+                        )
+                        Text(
+                            text = "Refuerza bordes y líneas de tiempo en modo oscuro",
+                            style = RoutineTheme.typography.codeSm.copy(fontSize = 10.sp),
+                            color = RoutineTheme.colors.onSurfaceVariant
+                        )
+                    }
+                    Switch(
+                        checked = highContrast,
+                        onCheckedChange = {
+                            highContrast = it
+                            onToggleHighContrast(it)
+                        }
+                    )
+                }
+
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Column(modifier = Modifier.weight(1f)) {
+                        Text(
+                            text = "Vibración háptica",
+                            style = RoutineTheme.typography.bodyBase.copy(fontSize = 13.sp, fontWeight = FontWeight.SemiBold),
+                            color = RoutineTheme.colors.onSurface
+                        )
+                        Text(
+                            text = "Feedback táctil al completar bloques",
+                            style = RoutineTheme.typography.codeSm.copy(fontSize = 10.sp),
+                            color = RoutineTheme.colors.onSurfaceVariant
+                        )
+                    }
+                    Switch(
+                        checked = hapticFeedback,
+                        onCheckedChange = { hapticFeedback = it }
+                    )
+                }
+            }
+        },
+        confirmButton = {
+            Button(
+                onClick = onDismiss,
+                colors = ButtonDefaults.buttonColors(containerColor = RoutineTheme.colors.primary, contentColor = RoutineTheme.colors.onPrimary),
+                shape = RoundedCornerShape(6.dp)
+            ) {
+                Text("Listo", style = RoutineTheme.typography.codeSm.copy(fontWeight = FontWeight.Bold))
             }
         },
         containerColor = RoutineTheme.colors.surface1,
